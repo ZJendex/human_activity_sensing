@@ -1,0 +1,24 @@
+site_name: Radar Human Activity Dataset Notes
+site_description: Literature notes and metric references for radar/RF human sensing and pose estimation.
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: readthedocs
+  highlightjs: true
+
+nav:
+  - Home: index.md
+  - Dataset Links: radar_human_activity_sensing_papers.md
+  - Papers by Impact: radar_human_sensing_papers_by_impact.md
+  - Pose Metrics Reference: human_pose_metrics_reference.md
+
+markdown_extensions:
+  - admonition
+  - fenced_code
+  - tables
+  - toc:
+      permalink: true
+  - sane_lists
+
+strict: true
