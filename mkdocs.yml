@@ -18,6 +18,7 @@ nav:
   - Home: index.md
   - Dataset Links: radar_human_activity_sensing_papers.md
   - Papers by Impact: radar_human_sensing_papers_by_impact.md
+  - Accuracy Summary: selected_work_accuracy.md
   - Pose Metrics Reference: human_pose_metrics_reference.md
 
 markdown_extensions:
