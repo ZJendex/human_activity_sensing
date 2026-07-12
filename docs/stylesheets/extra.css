@@ -1,0 +1,67 @@
+/* Use the full viewport while keeping long-form text comfortably readable. */
+.wy-nav-content-wrap {
+  min-height: 100vh;
+  background: #fcfcfc;
+}
+
+.wy-nav-content {
+  box-sizing: border-box;
+  max-width: none;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: clamp(1.75rem, 3vw, 3.5rem) clamp(1.25rem, 4vw, 5rem);
+}
+
+.rst-content {
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+.rst-content table.docutils,
+.rst-content table.field-list {
+  width: 100%;
+}
+
+/* Give rendered equations a clear, readable display treatment. */
+.rst-content .math-display {
+  margin: 1.25rem 0 1.5rem;
+  padding: 1.15rem 1.5rem;
+  overflow-x: auto;
+  color: #263238;
+  background: #f6f8fa;
+  border: 1px solid #dfe5ea;
+  border-left: 4px solid #2980b9;
+  border-radius: 0.3rem;
+  box-shadow: 0 1px 2px rgba(31, 45, 61, 0.06);
+}
+
+.rst-content .math-display mjx-container[display="true"] {
+  margin: 0;
+  min-width: max-content;
+  font-size: 110%;
+  text-align: center;
+}
+
+@media screen and (max-width: 768px) {
+  .wy-nav-content {
+    padding: 1.5rem 1.15rem;
+  }
+
+  .rst-content .math-display {
+    padding: 1rem;
+  }
+}
+
+@media print {
+  .rst-content,
+  .wy-nav-content {
+    max-width: none;
+  }
+
+  .rst-content .math-display {
+    overflow: visible;
+    box-shadow: none;
+  }
+}

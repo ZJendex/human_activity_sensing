@@ -34,10 +34,16 @@ Intuition: "How many pixels, centimeters, or millimeters away is the predicted j
 
 Calculation:
 
-```text
-EPE[n,k] = ||p[n,k] - g[n,k]||_2
-mean EPE = sum(m[n,k] * EPE[n,k]) / sum(m[n,k])
-```
+<div class="math-display">
+\[
+\begin{aligned}
+\operatorname{EPE}_{n,k} &= \lVert \mathbf{p}_{n,k} - \mathbf{g}_{n,k} \rVert_2, \\
+\operatorname{mean\ EPE} &=
+\frac{\sum_{n,k} m_{n,k}\operatorname{EPE}_{n,k}}
+     {\sum_{n,k} m_{n,k}}.
+\end{aligned}
+\]
+</div>
 
 Use it for 2D image landmarks, 3D joints, radar-localized joints, and any single-point prediction. Lower is better. MMPose describes EPE as the endpoint error of keypoints.
 
@@ -47,9 +53,11 @@ Intuition: "Average absolute coordinate error per axis."
 
 Calculation:
 
-```text
-MAE = mean(|p_x - g_x| + |p_y - g_y| + ... over evaluated axes)
-```
+<div class="math-display">
+\[
+\operatorname{MAE} = \frac{1}{D}\sum_{d=1}^{D}\left|p_d-g_d\right|
+\]
+</div>
 
 Use it when axis-specific errors matter, e.g. radar range error versus azimuth error. Lower is better. It is less sensitive to outliers than RMSE.
 
@@ -59,9 +67,13 @@ Intuition: "Average error with a stronger penalty for large mistakes."
 
 Calculation:
 
-```text
-RMSE = sqrt(mean(||p[n,k] - g[n,k]||_2^2))
-```
+<div class="math-display">
+\[
+\operatorname{RMSE} =
+\sqrt{\frac{\sum_{n,k}m_{n,k}\lVert\mathbf{p}_{n,k}-\mathbf{g}_{n,k}\rVert_2^2}
+{\sum_{n,k}m_{n,k}}}
+\]
+</div>
 
 Use it when large errors should count disproportionately, such as clinical motion tracking where rare large errors may be unsafe. Lower is better.
 
@@ -71,9 +83,13 @@ Intuition: "How large is the error relative to body size or face/head scale?"
 
 Calculation:
 
-```text
-NME = mean(||p[n,k] - g[n,k]||_2 / S[n])
-```
+<div class="math-display">
+\[
+\operatorname{NME} =
+\frac{\sum_{n,k}m_{n,k}\dfrac{\lVert\mathbf{p}_{n,k}-\mathbf{g}_{n,k}\rVert_2}{S_n}}
+{\sum_{n,k}m_{n,k}}
+\]
+</div>
 
 Common normalizers include head size, bounding-box size, torso length, inter-ocular distance, or subject height. Lower is better. Normalization makes a 10-pixel error on a small person count more than a 10-pixel error on a large person.
 
@@ -85,10 +101,17 @@ Intuition: "What fraction of joints are close enough?"
 
 Calculation:
 
-```text
-correct[n,k] = 1 if ||p[n,k] - g[n,k]||_2 / S[n] <= threshold else 0
-PCK = sum(m[n,k] * correct[n,k]) / sum(m[n,k])
-```
+<div class="math-display">
+\[
+\begin{aligned}
+c_{n,k}(\tau) &= \mathbb{1}\!\left[
+\frac{\lVert\mathbf{p}_{n,k}-\mathbf{g}_{n,k}\rVert_2}{S_n}\leq\tau
+\right], \\
+\operatorname{PCK}@\tau &=
+\frac{\sum_{n,k}m_{n,k}c_{n,k}(\tau)}{\sum_{n,k}m_{n,k}}.
+\end{aligned}
+\]
+</div>
 
 Examples:
 
@@ -119,11 +142,14 @@ Intuition: "Is an entire limb segment correct, not just one joint?"
 
 Calculation:
 
-```text
-For a limb with endpoints a and b:
-limb is correct if both endpoint errors are below alpha * limb_length.
-PCP = correct limbs / total evaluated limbs
-```
+<div class="math-display">
+\[
+\begin{aligned}
+c_{a,b} &= \mathbb{1}\!\left[e_a < \alpha L_{a,b}\ \land\ e_b < \alpha L_{a,b}\right], \\
+\operatorname{PCP} &= \frac{\text{number of correct limbs}}{\text{number of evaluated limbs}}.
+\end{aligned}
+\]
+</div>
 
 Higher is better. PCP is older and can favor long limbs because the tolerance grows with limb length.
 
@@ -135,15 +161,19 @@ Intuition: "Pose version of IoU: how similar is a predicted skeleton to a ground
 
 Calculation, conceptually:
 
-```text
-OKS = mean_i exp(-d_i^2 / (2 * s^2 * k_i^2))
-```
+<div class="math-display">
+\[
+\operatorname{OKS} =
+\frac{\sum_i v_i\exp\!\left(-\dfrac{d_i^2}{2s^2\kappa_i^2}\right)}
+     {\sum_i v_i}
+\]
+</div>
 
 where:
 
 - `d_i` is the Euclidean distance for keypoint `i`.
 - `s` is object/person scale, derived from area.
-- `k_i` is a per-keypoint falloff constant.
+- `k_i` (shown as `κ_i` in the equation) is a per-keypoint falloff constant.
 - invisible or unlabeled keypoints are excluded.
 
 Higher is better. Small errors on a small person are penalized more than the same pixel error on a large person. COCO's evaluator computes squared keypoint distances, divides by keypoint-specific variances and object area, then averages `exp(-error)` terms over labeled keypoints.
@@ -178,9 +208,13 @@ Intuition: "Average 3D joint distance from the ground truth."
 
 Calculation:
 
-```text
-MPJPE = sum(m[n,k] * ||p[n,k] - g[n,k]||_2) / sum(m[n,k])
-```
+<div class="math-display">
+\[
+\operatorname{MPJPE} =
+\frac{\sum_{n,k}m_{n,k}\lVert\mathbf{p}_{n,k}-\mathbf{g}_{n,k}\rVert_2}
+     {\sum_{n,k}m_{n,k}}
+\]
+</div>
 
 Units are usually millimeters. Lower is better. This is the most common 3D pose metric. MMPose defines MPJPE as mean per-joint position error over keypoints.
 
@@ -190,11 +224,17 @@ Intuition: "How good is the body pose after ignoring global body location?"
 
 Calculation:
 
-```text
-p_rooted[n,k] = p[n,k] - p[n,root]
-g_rooted[n,k] = g[n,k] - g[n,root]
-MPJPE_root = mean(||p_rooted[n,k] - g_rooted[n,k]||_2)
-```
+<div class="math-display">
+\[
+\begin{aligned}
+\widetilde{\mathbf{p}}_{n,k} &= \mathbf{p}_{n,k}-\mathbf{p}_{n,r}, \\
+\widetilde{\mathbf{g}}_{n,k} &= \mathbf{g}_{n,k}-\mathbf{g}_{n,r}, \\
+\operatorname{MPJPE}_{\text{root}} &=
+\frac{\sum_{n,k}m_{n,k}\lVert\widetilde{\mathbf{p}}_{n,k}-\widetilde{\mathbf{g}}_{n,k}\rVert_2}
+     {\sum_{n,k}m_{n,k}}.
+\end{aligned}
+\]
+</div>
 
 Lower is better. This removes global translation error and focuses on relative body configuration. For radar papers, report clearly whether global position is included, because radar often cares about both location and pose.
 
@@ -204,10 +244,16 @@ Intuition: "How good is the pose if the model gets the body shape up to a global
 
 Calculation:
 
-```text
-Find scalar a that minimizes sum_k ||a * p[k] - g[k]||_2^2.
-N-MPJPE = mean_k ||a * p[k] - g[k]||_2.
-```
+<div class="math-display">
+\[
+\begin{aligned}
+a^* &= \underset{a}{\arg\min}\ \sum_k
+\lVert a\mathbf{p}_k-\mathbf{g}_k\rVert_2^2, \\
+\operatorname{N\text{-}MPJPE} &= \frac{1}{K}\sum_k
+\lVert a^*\mathbf{p}_k-\mathbf{g}_k\rVert_2.
+\end{aligned}
+\]
+</div>
 
 Lower is better. This forgives one global scale error but does not forgive wrong joint angles or wrong shape.
 
@@ -217,11 +263,17 @@ Intuition: "How similar is the predicted pose shape after allowing the best rigi
 
 Calculation:
 
-```text
-Find scale a, rotation R, and translation t that minimize:
-sum_k ||a * R * p[k] + t - g[k]||_2^2
-PA-MPJPE = mean_k ||a * R * p[k] + t - g[k]||_2
-```
+<div class="math-display">
+\[
+\begin{aligned}
+(a^*,\mathbf{R}^*,\mathbf{t}^*) &=
+\underset{a,\mathbf{R},\mathbf{t}}{\arg\min}\ \sum_k
+\lVert a\mathbf{R}\mathbf{p}_k+\mathbf{t}-\mathbf{g}_k\rVert_2^2, \\
+\operatorname{PA\text{-}MPJPE} &= \frac{1}{K}\sum_k
+\lVert a^*\mathbf{R}^*\mathbf{p}_k+\mathbf{t}^*-\mathbf{g}_k\rVert_2.
+\end{aligned}
+\]
+</div>
 
 Lower is better. This removes global translation, rotation, and scale, so it is easier than raw MPJPE. It is useful for checking pose shape but can hide absolute localization errors.
 
@@ -231,11 +283,16 @@ Intuition: "How wrong is one body part relative to another?"
 
 Calculation:
 
-```text
-relative_pred = p[joint_a] - p[joint_b]
-relative_gt = g[joint_a] - g[joint_b]
-MRPE = mean(||relative_pred - relative_gt||_2)
-```
+<div class="math-display">
+\[
+\begin{aligned}
+\Delta\mathbf{p}_{a,b} &= \mathbf{p}_a-\mathbf{p}_b, &
+\Delta\mathbf{g}_{a,b} &= \mathbf{g}_a-\mathbf{g}_b, \\
+\operatorname{MRPE} &= \operatorname{mean}\!left(
+\lVert\Delta\mathbf{p}_{a,b}-\Delta\mathbf{g}_{a,b}\rVert_2\right).
+\end{aligned}
+\]
+</div>
 
 Lower is better. Used in hand pose, multi-body pose, and interaction settings.
 
@@ -245,12 +302,16 @@ Intuition: "Does the predicted skeleton have anatomically plausible limb lengths
 
 Calculation:
 
-```text
-For bone e = (i,j):
-pred_len = ||p[i] - p[j]||_2
-gt_len = ||g[i] - g[j]||_2
-bone_error = mean(|pred_len - gt_len|)
-```
+<div class="math-display">
+\[
+\begin{aligned}
+\widehat{L}_{i,j} &= \lVert\mathbf{p}_i-\mathbf{p}_j\rVert_2, &
+L_{i,j} &= \lVert\mathbf{g}_i-\mathbf{g}_j\rVert_2, \\
+E_{\text{bone}} &= \frac{1}{|\mathcal{E}|}\sum_{(i,j)\in\mathcal{E}}
+\left|\widehat{L}_{i,j}-L_{i,j}\right|.
+\end{aligned}
+\]
+</div>
 
 Lower is better. It catches skeleton stretching even when joint distances look acceptable.
 
@@ -260,12 +321,16 @@ Intuition: "Are the predicted limb angles correct?"
 
 Calculation for a joint `j` connected to neighbors `a` and `b`:
 
-```text
-u_pred = normalize(p[a] - p[j])
-v_pred = normalize(p[b] - p[j])
-angle_pred = arccos(dot(u_pred, v_pred))
-angle_error = |angle_pred - angle_gt|
-```
+<div class="math-display">
+\[
+\begin{aligned}
+\widehat{\mathbf{u}} &= \frac{\mathbf{p}_a-\mathbf{p}_j}{\lVert\mathbf{p}_a-\mathbf{p}_j\rVert_2}, &
+\widehat{\mathbf{v}} &= \frac{\mathbf{p}_b-\mathbf{p}_j}{\lVert\mathbf{p}_b-\mathbf{p}_j\rVert_2}, \\
+\widehat{\theta}_j &= \arccos\!\left(\widehat{\mathbf{u}}^{\mathsf T}\widehat{\mathbf{v}}\right), &
+E_{\theta,j} &= \left|\widehat{\theta}_j-\theta_j\right|.
+\end{aligned}
+\]
+</div>
 
 Lower is better. Units are degrees or radians. This is more biomechanically interpretable than raw joint distance.
 
@@ -277,9 +342,12 @@ Intuition: "How far is each predicted body mesh vertex from the reference mesh v
 
 Calculation:
 
-```text
-MPVPE = mean_v ||pred_vertex[v] - gt_vertex[v]||_2
-```
+<div class="math-display">
+\[
+\operatorname{MPVPE} = \frac{1}{V}\sum_{v=1}^{V}
+\lVert\widehat{\mathbf{x}}_v-\mathbf{x}_v\rVert_2
+\]
+</div>
 
 Lower is better. Usually reported in millimeters. It evaluates body surface shape, not just skeleton joints.
 
@@ -295,9 +363,13 @@ Intuition: "How far are predicted mesh points from the closest point on the refe
 
 Calculation:
 
-```text
-P2S = mean_v min_u ||pred_vertex[v] - point_on_gt_surface[u]||_2
-```
+<div class="math-display">
+\[
+\operatorname{P2S} = \frac{1}{V}\sum_{v=1}^{V}
+\min_{\mathbf{y}\in\mathcal{S}_{\mathrm{gt}}}
+\lVert\widehat{\mathbf{x}}_v-\mathbf{y}\rVert_2
+\]
+</div>
 
 Lower is better. Unlike vertex-to-vertex error, it can work when mesh topology or vertex indexing differs.
 
@@ -307,9 +379,14 @@ Intuition: "How close are two unordered point clouds or surfaces?"
 
 Calculation:
 
-```text
-CD(A,B) = mean_a min_b ||a - b||_2^2 + mean_b min_a ||b - a||_2^2
-```
+<div class="math-display">
+\[
+\operatorname{CD}(A,B) =
+\frac{1}{|A|}\sum_{\mathbf{a}\in A}\min_{\mathbf{b}\in B}\lVert\mathbf{a}-\mathbf{b}\rVert_2^2
++
+\frac{1}{|B|}\sum_{\mathbf{b}\in B}\min_{\mathbf{a}\in A}\lVert\mathbf{b}-\mathbf{a}\rVert_2^2
+\]
+</div>
 
 Lower is better. Useful for radar point clouds, LiDAR, depth, or meshes when one-to-one vertex correspondence is unavailable.
 
@@ -332,11 +409,16 @@ Intuition: "Does the predicted motion move at the right speed?"
 
 Calculation:
 
-```text
-vel_p[t,k] = p[t,k] - p[t-1,k]
-vel_g[t,k] = g[t,k] - g[t-1,k]
-MPJVE = mean(||vel_p[t,k] - vel_g[t,k]||_2)
-```
+<div class="math-display">
+\[
+\begin{aligned}
+\widehat{\mathbf{v}}_{t,k} &= \mathbf{p}_{t,k}-\mathbf{p}_{t-1,k}, &
+\mathbf{v}_{t,k} &= \mathbf{g}_{t,k}-\mathbf{g}_{t-1,k}, \\
+\operatorname{MPJVE} &= \operatorname{mean}_{t,k}
+\lVert\widehat{\mathbf{v}}_{t,k}-\mathbf{v}_{t,k}\rVert_2.
+\end{aligned}
+\]
+</div>
 
 Lower is better. It can reveal motion errors even if framewise pose error is low.
 
@@ -346,11 +428,16 @@ Intuition: "Does the motion accelerate naturally?"
 
 Calculation:
 
-```text
-acc_p[t,k] = p[t+1,k] - 2*p[t,k] + p[t-1,k]
-acc_g[t,k] = g[t+1,k] - 2*g[t,k] + g[t-1,k]
-acc_error = mean(||acc_p[t,k] - acc_g[t,k]||_2)
-```
+<div class="math-display">
+\[
+\begin{aligned}
+\widehat{\mathbf{a}}_{t,k} &= \mathbf{p}_{t+1,k}-2\mathbf{p}_{t,k}+\mathbf{p}_{t-1,k}, \\
+\mathbf{a}_{t,k} &= \mathbf{g}_{t+1,k}-2\mathbf{g}_{t,k}+\mathbf{g}_{t-1,k}, \\
+E_{\mathrm{acc}} &= \operatorname{mean}_{t,k}
+\lVert\widehat{\mathbf{a}}_{t,k}-\mathbf{a}_{t,k}\rVert_2.
+\end{aligned}
+\]
+</div>
 
 Lower is better. This is common in video pose to penalize jitter.
 
@@ -360,10 +447,16 @@ Intuition: "Is the predicted pose flickering?"
 
 Calculation examples:
 
-```text
-jitter = mean(||p[t+1,k] - 2*p[t,k] + p[t-1,k]||_2)
-jerk = mean(||p[t+2,k] - 3*p[t+1,k] + 3*p[t,k] - p[t-1,k]||_2)
-```
+<div class="math-display">
+\[
+\begin{aligned}
+\operatorname{jitter} &= \operatorname{mean}_{t,k}
+\lVert\mathbf{p}_{t+1,k}-2\mathbf{p}_{t,k}+\mathbf{p}_{t-1,k}\rVert_2, \\
+\operatorname{jerk} &= \operatorname{mean}_{t,k}
+\lVert\mathbf{p}_{t+2,k}-3\mathbf{p}_{t+1,k}+3\mathbf{p}_{t,k}-\mathbf{p}_{t-1,k}\rVert_2.
+\end{aligned}
+\]
+</div>
 
 Lower is smoother, but smoother is not always more accurate. A method can look smooth by over-filtering and missing real fast motion.
 
@@ -375,9 +468,13 @@ Intuition: "Across a video, how many misses, false positives, and identity switc
 
 Calculation:
 
-```text
-MOTA = 1 - (FN + FP + IDSW) / GT
-```
+<div class="math-display">
+\[
+\operatorname{MOTA} = 1-
+\frac{\operatorname{FN}+\operatorname{FP}+\operatorname{IDSW}}
+     {\operatorname{GT}}
+\]
+</div>
 
 Higher is better. It is useful when pose belongs to people over time, but it is dominated by detection failures and identity switches.
 
@@ -403,9 +500,11 @@ Intuition: "How wrong is the estimated distance from radar to body or joint?"
 
 Calculation:
 
-```text
-range_error = |pred_range - gt_range|
-```
+<div class="math-display">
+\[
+E_{\mathrm{range}} = \left|\widehat{r}-r\right|
+\]
+</div>
 
 Lower is better. Report MAE/RMSE in meters or centimeters.
 
@@ -415,10 +514,14 @@ Intuition: "How wrong is the estimated direction of the person or joint?"
 
 Calculation:
 
-```text
-az_error = |wrap_angle(pred_azimuth - gt_azimuth)|
-el_error = |pred_elevation - gt_elevation|
-```
+<div class="math-display">
+\[
+\begin{aligned}
+E_{\mathrm{az}} &= \left|\operatorname{wrap}(\widehat{\phi}-\phi)\right|, \\
+E_{\mathrm{el}} &= \left|\widehat{\theta}-\theta\right|.
+\end{aligned}
+\]
+</div>
 
 Lower is better. Units are degrees. Radar angle error often grows when SNR is low or people are close together.
 
@@ -428,10 +531,12 @@ Intuition: "After converting radar range-angle to 3D position, how far is the es
 
 Calculation:
 
-```text
-Convert radar polar coordinates to x,y,z.
-loc_error = ||pred_xyz - gt_xyz||_2
-```
+<div class="math-display">
+\[
+E_{\mathrm{loc}} =
+\left\lVert\widehat{\mathbf{x}}_{\mathrm{xyz}}-\mathbf{x}_{\mathrm{xyz}}\right\rVert_2
+\]
+</div>
 
 Lower is better. This is often more comparable to MPJPE than raw range/angle errors.
 
@@ -461,10 +566,13 @@ Intuition: "Does the new method systematically overestimate or underestimate the
 
 Calculation:
 
-```text
-error_i = prediction_i - reference_i
-bias = mean(error_i)
-```
+<div class="math-display">
+\[
+e_i=\widehat{y}_i-y_i,
+\qquad
+\operatorname{bias}=\frac{1}{N}\sum_{i=1}^{N}e_i
+\]
+</div>
 
 Lower absolute bias is better. Bias near zero means no average offset, but it does not guarantee low random error.
 
@@ -474,10 +582,14 @@ Intuition: "How far is the markerless/radar/wearable measurement from gold-stand
 
 Calculation:
 
-```text
-MAE = mean(|prediction_i - reference_i|)
-RMSE = sqrt(mean((prediction_i - reference_i)^2))
-```
+<div class="math-display">
+\[
+\begin{aligned}
+\operatorname{MAE} &= \frac{1}{N}\sum_{i=1}^{N}\left|\widehat{y}_i-y_i\right|, \\
+\operatorname{RMSE} &= \sqrt{\frac{1}{N}\sum_{i=1}^{N}\left(\widehat{y}_i-y_i\right)^2}.
+\end{aligned}
+\]
+</div>
 
 Lower is better. Use MAE for typical absolute error; use RMSE when large errors should be punished more.
 
@@ -495,9 +607,12 @@ Intuition: "How reliable are repeated measurements or raters?"
 
 Calculation: ICC is a ratio of between-subject variance to total variance under a chosen ANOVA/mixed-effects model.
 
-```text
-ICC ~= between_subject_variance / total_variance
-```
+<div class="math-display">
+\[
+\operatorname{ICC}\ \approx\
+\frac{\sigma_{\mathrm{between}}^2}{\sigma_{\mathrm{total}}^2}
+\]
+</div>
 
 Higher is better. Always report the ICC form, e.g. one-way/two-way, consistency/absolute agreement, single/average rater. ICC is widely used in medical measurement reliability.
 
@@ -507,11 +622,15 @@ Intuition: "How far apart can two measurement methods be for an individual subje
 
 Calculation:
 
-```text
-diff_i = method_A_i - method_B_i
-bias = mean(diff_i)
-LoA = bias +/- 1.96 * SD(diff_i)
-```
+<div class="math-display">
+\[
+\begin{aligned}
+d_i &= A_i-B_i, \\
+\overline{d} &= \frac{1}{N}\sum_{i=1}^{N}d_i, \\
+\operatorname{LoA}_{95\%} &= \overline{d}\ \pm\ 1.96\,s_d.
+\end{aligned}
+\]
+</div>
 
 Narrower limits are better, if they are within a clinically acceptable range. Bland-Altman is often more informative than correlation for comparing a new pose system with motion capture.
 
@@ -521,9 +640,11 @@ Intuition: "How much noise is expected in one measured score?"
 
 Calculation:
 
-```text
-SEM = SD * sqrt(1 - ICC)
-```
+<div class="math-display">
+\[
+\operatorname{SEM}=\operatorname{SD}\sqrt{1-\operatorname{ICC}}
+\]
+</div>
 
 Lower is better. SEM converts reliability into the units of the measurement, such as degrees or centimeters.
 
@@ -533,9 +654,11 @@ Intuition: "How large must a change be before we believe it is not just measurem
 
 Calculation, common 95% version:
 
-```text
-MDC95 = 1.96 * sqrt(2) * SEM
-```
+<div class="math-display">
+\[
+\operatorname{MDC}_{95}=1.96\sqrt{2}\,\operatorname{SEM}
+\]
+</div>
 
 Lower is better for sensitive measurement systems. In rehabilitation, a patient change smaller than MDC95 may be noise rather than real improvement.
 
@@ -557,11 +680,14 @@ Calculation: define body segments, build vectors or coordinate frames, then comp
 
 For a simple hinge angle:
 
-```text
-u = proximal_segment_vector
-v = distal_segment_vector
-angle = arccos(dot(normalize(u), normalize(v)))
-```
+<div class="math-display">
+\[
+\theta = \arccos\!\left(
+\frac{\mathbf{u}^{\mathsf T}\mathbf{v}}
+     {\lVert\mathbf{u}\rVert_2\lVert\mathbf{v}\rVert_2}
+\right)
+\]
+</div>
 
 Units are degrees. Joint angles are more clinically interpretable than raw keypoint coordinates.
 
@@ -571,11 +697,15 @@ Intuition: "How many degrees away is the estimated joint angle from the referenc
 
 Calculation:
 
-```text
-angle_error[t] = estimated_angle[t] - reference_angle[t]
-MAE_angle = mean(|angle_error[t]|)
-RMSE_angle = sqrt(mean(angle_error[t]^2))
-```
+<div class="math-display">
+\[
+\begin{aligned}
+e_{\theta,t} &= \widehat{\theta}_t-\theta_t, \\
+\operatorname{MAE}_{\theta} &= \frac{1}{T}\sum_{t=1}^{T}|e_{\theta,t}|, \\
+\operatorname{RMSE}_{\theta} &= \sqrt{\frac{1}{T}\sum_{t=1}^{T}e_{\theta,t}^{2}}.
+\end{aligned}
+\]
+</div>
 
 Lower is better. Report the plane and convention, e.g. sagittal knee flexion or frontal hip abduction.
 
@@ -585,9 +715,12 @@ Intuition: "Did the method capture clinically important peak flexion or extensio
 
 Calculation:
 
-```text
-peak_error = |max(estimated_angle over cycle) - max(reference_angle over cycle)|
-```
+<div class="math-display">
+\[
+E_{\mathrm{peak}} =
+\left|\max_t\widehat{\theta}_t-\max_t\theta_t\right|
+\]
+</div>
 
 Lower is better. Also report timing error if peak timing matters.
 
@@ -597,10 +730,15 @@ Intuition: "How much did the joint move?"
 
 Calculation:
 
-```text
-ROM = max(angle over task) - min(angle over task)
-ROM_error = |estimated_ROM - reference_ROM|
-```
+<div class="math-display">
+\[
+\begin{aligned}
+\operatorname{ROM}(\theta) &= \max_t\theta_t-\min_t\theta_t, \\
+E_{\mathrm{ROM}} &= \left|\operatorname{ROM}(\widehat{\theta})-
+\operatorname{ROM}(\theta)\right|.
+\end{aligned}
+\]
+</div>
 
 Higher ROM is not always better clinically; interpretation depends on task and pathology.
 
@@ -610,10 +748,13 @@ Intuition: "Is the thigh, shank, trunk, pelvis, or foot orientation correct?"
 
 Calculation with rotation matrices:
 
-```text
-R_err = R_reference^T * R_prediction
-angle_error = arccos((trace(R_err) - 1) / 2)
-```
+<div class="math-display">
+\[
+\mathbf{R}_{\mathrm{err}}=\mathbf{R}_{\mathrm{ref}}^{\mathsf T}\mathbf{R}_{\mathrm{pred}},
+\qquad
+E_{\theta}=\arccos\!\left(\frac{\operatorname{tr}(\mathbf{R}_{\mathrm{err}})-1}{2}\right)
+\]
+</div>
 
 Lower is better. This is common for IMU and marker-based biomechanics.
 
@@ -623,11 +764,16 @@ Intuition: "How much does the body oscillate or drift?"
 
 Calculation examples:
 
-```text
-RMS_sway = sqrt(mean((COM_or_trunk_position - mean_position)^2))
-sway_path = sum_t ||position[t] - position[t-1]||_2
-sway_velocity = sway_path / duration
-```
+<div class="math-display">
+\[
+\begin{aligned}
+\operatorname{RMS}_{\mathrm{sway}} &=
+\sqrt{\frac{1}{T}\sum_{t=1}^{T}\lVert\mathbf{x}_t-\overline{\mathbf{x}}\rVert_2^2}, \\
+L_{\mathrm{sway}} &= \sum_{t=2}^{T}\lVert\mathbf{x}_t-\mathbf{x}_{t-1}\rVert_2, \\
+v_{\mathrm{sway}} &= \frac{L_{\mathrm{sway}}}{\text{duration}}.
+\end{aligned}
+\]
+</div>
 
 Lower sway can indicate better balance in many settings, but not always; some tasks require controlled movement.
 
@@ -641,9 +787,11 @@ Intuition: "How fast does the person move forward?"
 
 Calculation:
 
-```text
-gait_speed = distance_walked / time
-```
+<div class="math-display">
+\[
+v_{\mathrm{gait}}=\frac{\text{distance walked}}{\text{elapsed time}}
+\]
+</div>
 
 Units are m/s. Faster is not always better, but very slow gait speed often indicates impairment or frailty.
 
@@ -653,9 +801,11 @@ Intuition: "How many steps per minute?"
 
 Calculation:
 
-```text
-cadence = number_of_steps / walking_time_minutes
-```
+<div class="math-display">
+\[
+\operatorname{cadence}=\frac{\text{number of steps}}{\text{walking time in minutes}}
+\]
+</div>
 
 Higher cadence means more frequent steps. Interpret with stride length and speed.
 
@@ -665,10 +815,12 @@ Intuition: "How far forward does one foot land relative to the other?"
 
 Calculation:
 
-```text
-step_length_right = forward_position(right_initial_contact)
-                    - forward_position(left_previous_initial_contact)
-```
+<div class="math-display">
+\[
+L_{\mathrm{step,R}} =
+x_{\mathrm{R,contact}}-x_{\mathrm{L,previous\ contact}}
+\]
+</div>
 
 Units are meters or centimeters. Step length is side-specific.
 
@@ -678,10 +830,11 @@ Intuition: "How far does the same foot travel from one contact to the next?"
 
 Calculation:
 
-```text
-stride_length_right = forward_position(right_initial_contact_i+1)
-                      - forward_position(right_initial_contact_i)
-```
+<div class="math-display">
+\[
+L_{\mathrm{stride,R},i}=x_{\mathrm{R},i+1}-x_{\mathrm{R},i}
+\]
+</div>
 
 In symmetric walking, stride length is roughly two step lengths.
 
@@ -691,10 +844,14 @@ Intuition: "How long does each step or full gait cycle take?"
 
 Calculation:
 
-```text
-step_time = time(current_foot_contact) - time(opposite_previous_contact)
-stride_time = time(same_foot_contact_i+1) - time(same_foot_contact_i)
-```
+<div class="math-display">
+\[
+\begin{aligned}
+T_{\mathrm{step}} &= t_{\mathrm{current\ contact}}-t_{\mathrm{opposite\ previous\ contact}}, \\
+T_{\mathrm{stride},i} &= t_{\mathrm{same\ foot},i+1}-t_{\mathrm{same\ foot},i}.
+\end{aligned}
+\]
+</div>
 
 Lower time means faster stepping, but interpretation depends on gait speed.
 
@@ -704,11 +861,16 @@ Intuition: "How is the gait cycle divided between support and limb advancement?"
 
 Calculation:
 
-```text
-stance_time = toe_off_time - initial_contact_time
-swing_time = next_initial_contact_time - toe_off_time
-double_support_time = time intervals where both feet are on ground
-```
+<div class="math-display">
+\[
+\begin{aligned}
+T_{\mathrm{stance}} &= t_{\mathrm{toe\ off}}-t_{\mathrm{initial\ contact}}, \\
+T_{\mathrm{swing}} &= t_{\mathrm{next\ contact}}-t_{\mathrm{toe\ off}}, \\
+T_{\mathrm{double\ support}} &= \sum_j\left|I_j^{\mathrm{left\ contact}}
+\cap I_j^{\mathrm{right\ contact}}\right|.
+\end{aligned}
+\]
+</div>
 
 Often reported as seconds or percent of gait cycle. Increased double support often suggests cautious or unstable gait.
 
@@ -718,9 +880,12 @@ Intuition: "How wide is the walking base?"
 
 Calculation:
 
-```text
-step_width = lateral_distance_between_left_and_right_foot_contact_lines
-```
+<div class="math-display">
+\[
+W_{\mathrm{step}}=
+\left|y_{\mathrm{left\ contact}}-y_{\mathrm{right\ contact}}\right|
+\]
+</div>
 
 Wider step width can reflect balance strategy, pathology, or task constraints.
 
@@ -730,10 +895,14 @@ Intuition: "How consistent is the walking pattern from step to step?"
 
 Calculation:
 
-```text
-SD_step_time = standard_deviation(step_time_i)
-CV_step_time = 100 * SD(step_time_i) / mean(step_time_i)
-```
+<div class="math-display">
+\[
+\begin{aligned}
+\operatorname{SD}_{T} &= \operatorname{sd}(T_1,\ldots,T_N), \\
+\operatorname{CV}_{T} &= 100\%\times\frac{\operatorname{SD}_{T}}{\overline{T}}.
+\end{aligned}
+\]
+</div>
 
 Higher variability can indicate instability, fatigue, neurological impairment, or adaptation to a difficult task.
 
@@ -743,9 +912,12 @@ Intuition: "Are the left and right sides different?"
 
 Common calculation:
 
-```text
-symmetry_index = 100 * (left - right) / (0.5 * (left + right))
-```
+<div class="math-display">
+\[
+\operatorname{SI}=100\%\times
+\frac{L-R}{\tfrac{1}{2}(L+R)}
+\]
+</div>
 
 Other studies use ratios such as `left/right` or `affected/unaffected`. Always report the convention because sign and scale differ.
 
@@ -757,10 +929,13 @@ Intuition: "How close is the detected foot-contact event to the reference event?
 
 Calculation:
 
-```text
-timing_error = predicted_event_time - reference_event_time
-MAE_timing = mean(|timing_error|)
-```
+<div class="math-display">
+\[
+e_{t,i}=\widehat{t}_i-t_i,
+\qquad
+\operatorname{MAE}_{t}=\frac{1}{N}\sum_{i=1}^{N}|e_{t,i}|
+\]
+</div>
 
 Lower is better. Units are milliseconds.
 
@@ -776,11 +951,16 @@ Intuition: "Did the system find the right gait events without hallucinating extr
 
 Calculation:
 
-```text
-precision = TP / (TP + FP)
-recall = TP / (TP + FN)
-F1 = 2 * precision * recall / (precision + recall)
-```
+<div class="math-display">
+\[
+\begin{aligned}
+\operatorname{precision} &= \frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FP}}, &
+\operatorname{recall} &= \frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FN}}, \\
+F_1 &= 2\,\frac{\operatorname{precision}\cdot\operatorname{recall}}
+{\operatorname{precision}+\operatorname{recall}}.
+\end{aligned}
+\]
+</div>
 
 A predicted event is usually a true positive if it falls within a time tolerance, such as +/- 50 ms or +/- 100 ms. Higher is better.
 
@@ -792,10 +972,14 @@ Intuition: "Does the estimated force match force-plate measurements?"
 
 Calculation:
 
-```text
-force_error[t] = estimated_GRF[t] - reference_GRF[t]
-RMSE_GRF = sqrt(mean(force_error[t]^2))
-```
+<div class="math-display">
+\[
+e_{F,t}=\widehat{F}_t-F_t,
+\qquad
+\operatorname{RMSE}_{\mathrm{GRF}}=
+\sqrt{\frac{1}{T}\sum_{t=1}^{T}e_{F,t}^{2}}
+\]
+</div>
 
 Forces are often normalized by body weight. Lower is better.
 
@@ -805,9 +989,11 @@ Intuition: "Does the method estimate the rotational load at a joint?"
 
 Calculation: compute inverse dynamics from segment motion, external forces, body mass/inertia, and joint centers, then compare estimated versus reference joint moments.
 
-```text
-moment_error = estimated_joint_moment - reference_joint_moment
-```
+<div class="math-display">
+\[
+e_M=\widehat{M}_{\mathrm{joint}}-M_{\mathrm{joint}}
+\]
+</div>
 
 Moments are often normalized by body mass, e.g. Nm/kg. Lower is better.
 
@@ -817,10 +1003,13 @@ Intuition: "Does the joint generate or absorb mechanical power correctly?"
 
 Calculation:
 
-```text
-joint_power = joint_moment * joint_angular_velocity
-power_error = estimated_power - reference_power
-```
+<div class="math-display">
+\[
+P_{\mathrm{joint}}=M_{\mathrm{joint}}\,\omega_{\mathrm{joint}},
+\qquad
+e_P=\widehat{P}_{\mathrm{joint}}-P_{\mathrm{joint}}
+\]
+</div>
 
 Power is often normalized by body mass, e.g. W/kg. Lower error is better.
 
@@ -830,9 +1019,11 @@ Intuition: "How much total force is applied over time?"
 
 Calculation:
 
-```text
-impulse = integral(force over stance time)
-```
+<div class="math-display">
+\[
+J=\int_{t_{\mathrm{contact}}}^{t_{\mathrm{toe\ off}}}F(t)\,\mathrm{d}t
+\]
+</div>
 
 Used for braking, propulsion, and vertical support. Interpret relative to body weight and walking speed.
 
@@ -844,9 +1035,12 @@ Intuition: "How abnormal is one specific joint-angle curve?"
 
 Calculation:
 
-```text
-GVS_variable = RMS(subject_curve - normative_mean_curve)
-```
+<div class="math-display">
+\[
+\operatorname{GVS}_{q}=
+\sqrt{\frac{1}{T}\sum_{t=1}^{T}\left(q_t-\overline{q}^{\mathrm{norm}}_t\right)^2}
+\]
+</div>
 
 Lower is closer to the normative reference. Usually computed over a normalized gait cycle.
 
@@ -856,9 +1050,11 @@ Intuition: "How abnormal is the overall gait kinematic pattern?"
 
 Calculation:
 
-```text
-GPS = RMS over selected GVS values
-```
+<div class="math-display">
+\[
+\operatorname{GPS}=\sqrt{\frac{1}{Q}\sum_{q=1}^{Q}\operatorname{GVS}_{q}^{2}}
+\]
+</div>
 
 Lower is better, meaning closer to normative gait. GPS is often reported in degrees and can be paired with a Movement Analysis Profile showing which variables contribute most.
 
@@ -900,9 +1096,11 @@ Intuition: "How quickly can the person stand, walk, turn, return, and sit?"
 
 Calculation:
 
-```text
-TUG_time = time from start command to seated finish
-```
+<div class="math-display">
+\[
+T_{\mathrm{TUG}}=t_{\mathrm{seated\ finish}}-t_{\mathrm{start}}
+\]
+</div>
 
 Lower time usually indicates better mobility. Pose systems may estimate sub-events such as sit-to-stand time, turning time, and gait speed.
 
@@ -912,9 +1110,12 @@ Intuition: "How much walking capacity does the person have?"
 
 Calculation:
 
-```text
-6MWT_distance = total distance walked in 6 minutes
-```
+<div class="math-display">
+\[
+D_{\mathrm{6MWT}}=\sum_j D_j
+\quad\text{over a six-minute interval}
+\]
+</div>
 
 Higher distance usually indicates better endurance or functional capacity.
 
