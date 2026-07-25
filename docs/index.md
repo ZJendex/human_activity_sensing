@@ -7,7 +7,9 @@ This MkDocs site collects the Markdown notes in this repository so they can be r
 - [Dataset Links](radar_human_activity_sensing_papers.md): radar/RF human sensing datasets with verified public dataset links and recording metadata where available.
 - [Papers by Impact](radar_human_sensing_papers_by_impact.md): impact-ranked radar/RF human sensing papers, including RF-Pose, mmWave pose, mesh, activity, gesture, and gait-related work.
 - [Accuracy Summary](selected_work_accuracy.md): source-verified pose and mesh results for RF-Pose, mmMesh, mRI, MM-Fi, MMVR, Argus, MVDoppler-Pose, and M4Human.
+- [Model Architecture Comparison](model_architecture_comparison.md): visual, M4Human-centered explanation of how the eight works represent radar, encode space and time, fuse views, and produce 2D pose, 3D joints, or meshes.
 - [Pose Metrics Reference](human_pose_metrics_reference.md): plain-language explanations and formulas for ML/CV/radar pose metrics and biomedical/clinical biomechanics metrics.
+- [Three-ZED-X Human Mesh Roadmap](zedx_multiview_human_mesh_roadmap.md): indexed replay and mandatory rectification of three 3840×1200 side-by-side H.265 recordings carrying six unrectified eye views, followed by multi-view 2D/3D pose, trajectory and persistent tracking, SMPL fitting, and a stable world-coordinate mesh.
 
 ## Local Preview
 

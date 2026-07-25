@@ -19,7 +19,9 @@ nav:
   - Dataset Links: radar_human_activity_sensing_papers.md
   - Papers by Impact: radar_human_sensing_papers_by_impact.md
   - Accuracy Summary: selected_work_accuracy.md
+  - Model Architecture Comparison: model_architecture_comparison.md
   - Pose Metrics Reference: human_pose_metrics_reference.md
+  - Three-ZED-X Human Mesh Roadmap: zedx_multiview_human_mesh_roadmap.md
 
 markdown_extensions:
   - admonition

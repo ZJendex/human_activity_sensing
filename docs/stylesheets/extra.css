@@ -24,6 +24,31 @@
   width: 100%;
 }
 
+/* Let architecture figures and comparison charts use the full reading width. */
+.rst-content img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1rem auto 0.45rem;
+  border-radius: 0.35rem;
+}
+
+.rst-content p > em:only-child {
+  display: block;
+  margin: 0 0 1.25rem;
+  color: #5f6b76;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.rst-content table.docutils th {
+  vertical-align: bottom;
+}
+
+.rst-content table.docutils td {
+  vertical-align: top;
+}
+
 /* Give rendered equations a clear, readable display treatment. */
 .rst-content .math-display {
   margin: 1.25rem 0 1.5rem;
