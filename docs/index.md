@@ -10,6 +10,7 @@ This MkDocs site collects the Markdown notes in this repository so they can be r
 - [Model Architecture Comparison](model_architecture_comparison.md): visual, M4Human-centered explanation of how the eight works represent radar, encode space and time, fuse views, and produce 2D pose, 3D joints, or meshes.
 - [Pose Metrics Reference](human_pose_metrics_reference.md): plain-language explanations and formulas for ML/CV/radar pose metrics and biomedical/clinical biomechanics metrics.
 - [Three-ZED-X Human Mesh Roadmap](zedx_multiview_human_mesh_roadmap.md): indexed replay and mandatory rectification of three 3840×1200 side-by-side H.265 recordings carrying six unrectified eye views, followed by multi-view 2D/3D pose, trajectory and persistent tracking, SMPL fitting, and a stable world-coordinate mesh.
+- [CMU Panoptic 10-vs-3 Camera Study](cmu_panoptic_10_vs_3_camera_study.md): controlled RGB-only ViTPose, cross-view association, and triangulation study measuring the skeleton-accuracy difference between ten Kinect color views and a pre-registered three-camera subset, with depth isolated to point-cloud evaluation.
 
 ## Local Preview
 

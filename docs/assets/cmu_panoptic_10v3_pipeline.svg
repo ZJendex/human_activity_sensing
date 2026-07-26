@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="900" viewBox="0 0 1500 900" role="img" aria-labelledby="title desc">
+  <title id="title">Current CMU Panoptic 10-camera versus 3-camera reconstruction pipeline</title>
+  <desc id="desc">Ten synchronized RGB views pass through a shared RT-DETR and ViTPose cache, split into V10 and V3 camera selections, and then use identical association, triangulation, tracking, and evaluation code.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/>
+    </marker>
+    <style>
+      .title { font: 700 30px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; }
+      .band { font: 700 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: 1.2px; fill: #475569; }
+      .box-title { font: 700 20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+      .body { font: 400 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; }
+      .body-strong { font: 700 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #1e3a8a; }
+      .code { font: 600 15px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #475569; }
+      .code-small { font: 600 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #475569; }
+      .small { font: 400 15px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; }
+      .stage { fill: #ffffff; stroke: #94a3b8; stroke-width: 2; }
+      .model { fill: #eff6ff; stroke: #2563eb; stroke-width: 2.5; }
+      .selection { fill: #fff7ed; stroke: #ea580c; stroke-width: 2.5; }
+      .algorithm { fill: #f8fafc; stroke: #64748b; stroke-width: 2; }
+      .evaluation { fill: #f0fdf4; stroke: #16a34a; stroke-width: 2.5; }
+      .output { fill: #f5f3ff; stroke: #7c3aed; stroke-width: 2.5; }
+      .arrow { fill: none; stroke: #475569; stroke-width: 2.5; marker-end: url(#arrow); }
+      .arrow-blue { fill: none; stroke: #2563eb; stroke-width: 3; marker-end: url(#arrowBlue); }
+      .divider { stroke: #cbd5e1; stroke-width: 1.5; stroke-dasharray: 7 7; }
+    </style>
+  </defs>
+
+  <rect width="1500" height="900" rx="18" fill="#f8fafc"/>
+  <text x="40" y="48" class="title">Current 10-vs-3 RGB reconstruction pipeline</text>
+  <text x="40" y="76" class="subtitle">Real pilot backend: hf-vitpose · M = million learned parameters · model weights are shared across cameras</text>
+  <text x="40" y="112" class="band">INFERENCE — RGB ONLY</text>
+
+  <rect x="40" y="135" width="240" height="205" rx="14" class="stage"/>
+  <text x="60" y="168" class="box-title">1 · Data + sync</text>
+  <text x="60" y="202" class="body">10 Kinect RGB videos</text>
+  <text x="60" y="230" class="body">K, distortion, R, t</text>
+  <text x="60" y="258" class="body">nearest RGB frame</text>
+  <text x="60" y="286" class="body">current |Δt| ≤ 30 ms</text>
+  <text x="60" y="318" class="code">build_frame_table</text>
+
+  <path d="M 280 238 H 322" class="arrow"/>
+
+  <rect x="325" y="118" width="350" height="240" rx="14" class="model"/>
+  <text x="347" y="151" class="box-title">2 · M1 per-view 2D</text>
+  <text x="347" y="186" class="body-strong">RT-DETR-R50 · 43M</text>
+  <text x="347" y="212" class="body">person boxes; score ≥ 0.30</text>
+  <text x="347" y="247" class="body-strong">ViTPose-B Simple · 85.9M</text>
+  <text x="347" y="273" class="body">COCO-17 keypoints + confidence</text>
+  <text x="347" y="307" class="body">pose NMS removes duplicate boxes</text>
+  <text x="347" y="337" class="code">TransformersViTPoseBackend.infer</text>
+
+  <path d="M 675 238 H 717" class="arrow-blue"/>
+
+  <rect x="720" y="145" width="235" height="185" rx="14" class="model"/>
+  <text x="742" y="178" class="box-title">Frozen M1 cache</text>
+  <text x="742" y="211" class="body">run once on all 10 views</text>
+  <text x="742" y="239" class="body">boxes + 2D joints</text>
+  <text x="742" y="267" class="body">same cache for both arms</text>
+  <text x="742" y="302" class="body-strong">128.9M unique params</text>
+
+  <path d="M 837 330 V 370 H 777 V 392" class="arrow"/>
+  <path d="M 837 370 H 918 V 392" class="arrow"/>
+
+  <rect x="710" y="395" width="135" height="82" rx="12" class="selection"/>
+  <text x="777" y="428" text-anchor="middle" class="box-title">V10</text>
+  <text x="777" y="456" text-anchor="middle" class="body">50_01–50_10</text>
+
+  <rect x="865" y="395" width="190" height="82" rx="12" class="selection"/>
+  <text x="960" y="428" text-anchor="middle" class="box-title">V3-balanced</text>
+  <text x="960" y="456" text-anchor="middle" class="body">50_06 / 04 / 02</text>
+
+  <path d="M 845 436 H 1065 V 300 H 1082" class="arrow"/>
+  <path d="M 1055 436 H 1065" class="arrow"/>
+
+  <rect x="1085" y="135" width="190" height="205" rx="14" class="algorithm"/>
+  <text x="1105" y="168" class="box-title">3 · M2</text>
+  <text x="1105" y="196" class="body-strong">0 learned params</text>
+  <text x="1105" y="228" class="body">undistort + epipolar</text>
+  <text x="1105" y="256" class="body">Hungarian gate ≤ 25 px</text>
+  <text x="1105" y="284" class="body">cluster needs ≥ 2 views</text>
+  <text x="1105" y="313" class="code-small">associate_</text>
+  <text x="1105" y="331" class="code-small">across_views</text>
+
+  <path d="M 1275 238 H 1317" class="arrow"/>
+
+  <rect x="1320" y="105" width="155" height="270" rx="14" class="algorithm"/>
+  <text x="1340" y="138" class="box-title">4 · M3/post</text>
+  <text x="1340" y="166" class="body-strong">0 learned</text>
+  <text x="1340" y="194" class="body">score ≥ 0.05</text>
+  <text x="1340" y="222" class="body">weighted DLT</text>
+  <text x="1340" y="250" class="body">Huber refine</text>
+  <text x="1340" y="278" class="body">inliers ≤ 12 px</text>
+  <text x="1340" y="306" class="body">3D NMS: 30 cm</text>
+  <text x="1340" y="334" class="body">track gate: 80 cm</text>
+  <text x="1340" y="349" class="code-small">triangulate_</text>
+  <text x="1340" y="367" class="code-small">robust</text>
+
+  <path d="M 1398 375 V 408" class="arrow"/>
+  <rect x="1240" y="410" width="235" height="78" rx="12" class="output"/>
+  <text x="1357" y="442" text-anchor="middle" class="box-title">3D output</text>
+  <text x="1357" y="470" text-anchor="middle" class="body">world COCO-17 + track ID</text>
+
+  <line x1="40" y1="525" x2="1475" y2="525" class="divider"/>
+  <text x="40" y="558" class="band">EVALUATION — AFTER PREDICTIONS ARE FROZEN</text>
+
+  <rect x="40" y="590" width="300" height="175" rx="14" class="stage"/>
+  <text x="60" y="623" class="box-title">Evaluation-only reference</text>
+  <text x="60" y="655" class="body">official Panoptic 3D skeleton</text>
+  <text x="60" y="683" class="body">COCO-19 → COCO-17</text>
+  <text x="60" y="711" class="body">GT confidence &gt; 0.10</text>
+  <text x="60" y="746" class="small">Depth → visualization only, never MPJPE</text>
+
+  <path d="M 340 677 H 397" class="arrow"/>
+  <path d="M 1357 488 V 545 H 905 V 616 H 892" class="arrow"/>
+  <text x="1065" y="536" class="small">predicted skeletons</text>
+
+  <rect x="400" y="575" width="490" height="215" rx="14" class="evaluation"/>
+  <text x="422" y="608" class="box-title">5 · Evaluate each arm identically</text>
+  <text x="422" y="640" class="body">Hungarian: mean common-joint 3D error</text>
+  <text x="422" y="668" class="body">person match gate ≤ 1000 mm</text>
+  <text x="422" y="700" class="body">MPJPE + PCK@50/100: matched, rebuilt joints</text>
+  <text x="422" y="728" class="body">availability + person P/R: count missing output</text>
+  <text x="422" y="756" class="body">pelvis RMSE + track ID switches</text>
+  <text x="422" y="780" class="code-small">evaluate_reconstruction</text>
+
+  <path d="M 890 683 H 947" class="arrow"/>
+
+  <rect x="950" y="575" width="525" height="215" rx="14" class="output"/>
+  <text x="972" y="608" class="box-title">6 · Compare and interpret: V3 − V10</text>
+  <text x="972" y="642" class="body">ΔMPJPE &gt; 0 → V3 localization is worse</text>
+  <text x="972" y="672" class="body">ΔPCK / availability / recall &lt; 0 → V3 is worse</text>
+  <text x="972" y="702" class="body">read MPJPE with availability and recall</text>
+  <text x="972" y="732" class="body">2 s block bootstrap × 2000 → paired 95% CI</text>
+  <text x="972" y="762" class="body">all C(10,3) = 120 triplets → placement context</text>
+  <text x="972" y="781" class="code-small">compare_conditions · run_all_triplets</text>
+
+  <rect x="40" y="825" width="1435" height="45" rx="10" fill="#fff7ed" stroke="#fb923c" stroke-width="1.5"/>
+  <text x="60" y="854" class="body">oracle-noise is a separate 0-parameter geometry control (GT projection + synthetic noise); it is not the real ViTPose accuracy result.</text>
+</svg>

@@ -22,6 +22,7 @@ nav:
   - Model Architecture Comparison: model_architecture_comparison.md
   - Pose Metrics Reference: human_pose_metrics_reference.md
   - Three-ZED-X Human Mesh Roadmap: zedx_multiview_human_mesh_roadmap.md
+  - CMU Panoptic 10-vs-3 Camera Study: cmu_panoptic_10_vs_3_camera_study.md
 
 markdown_extensions:
   - admonition
