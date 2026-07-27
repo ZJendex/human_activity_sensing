@@ -1,0 +1,1224 @@
+{
+  "surface": "report",
+  "manifest": {
+    "version": 1,
+    "surface": "report",
+    "title": "CMU Panoptic 10-vs-3 Camera Study: Updated M2 Results",
+    "description": "Technical audit of the 10-vs-3 camera study after a minimal M2 full-pose epipolar-cost update, evaluated on all 1,175 primary moments.",
+    "generatedAt": "2026-07-26T11:33:54-04:00",
+    "sources": [
+      {
+        "id": "primary_runs",
+        "label": "Frozen M1 inputs and updated full-pose M2/M3 evaluations",
+        "query": {
+          "description": "Reviewed metrics from all updated V10/V3 evaluations over the three non-overlapping primary sequences.",
+          "engine": "duckdb",
+          "language": "sql",
+          "sql": "SELECT * FROM (VALUES ('band1','V10',575,28678,28678,18.1643980719,0.9451147221,1.0000000000,0.9981689486), ('band1','V3',575,28678,26540,33.8444227031,0.8155990957,0.9254480787,0.9986296006), ('pose3','V10',300,5079,5079,17.9859744094,0.9738137429,1.0000000000,0.9969911965), ('pose3','V3',300,5079,5013,26.3928965025,0.9170157590,0.9870053160,1.0000000000), ('haggling1','V10',300,13739,13737,21.7055185204,0.9496978962,0.9998544290,0.9808684607), ('haggling1','V3',300,13739,11909,31.9481087086,0.8564111176,0.8668025329,0.9804320203)) AS reviewed(sequence, condition, frames, eligible_joints, reconstructed_joints, mpjpe_mm, pck50, joint_availability, m2_pairwise_f1)",
+          "executed_at": "2026-07-26T11:33:54-04:00",
+          "tables_used": [
+            "artifacts/cmu_panoptic_10v3/hf_vitpose_full59s_10hz/frame_table.jsonl",
+            "artifacts/cmu_panoptic_10v3/hf_vitpose_full59s_10hz/m1_2d.jsonl",
+            "artifacts/cmu_panoptic_10v3/hf_vitpose_full59s_10hz/evaluation_m1/assignments.jsonl",
+            "artifacts/cmu_panoptic_10v3/m2_full_pose_update_2026-07-26/band1/evaluation_m2_v10.json",
+            "artifacts/cmu_panoptic_10v3/m2_full_pose_update_2026-07-26/band1/evaluation_m2_v3.json",
+            "artifacts/cmu_panoptic_10v3/m2_full_pose_update_2026-07-26/band1/evaluation_v10/summary.json",
+            "artifacts/cmu_panoptic_10v3/m2_full_pose_update_2026-07-26/band1/evaluation_v3/summary.json",
+            "artifacts/cmu_panoptic_10v3/m2_full_pose_update_2026-07-26/band1/comparison.json",
+            "artifacts/cmu_panoptic_10v3/hf_vitpose_pose3_30s/frame_table.jsonl",
+            "artifacts/cmu_panoptic_10v3/hf_vitpose_pose3_30s/m1_2d.jsonl",
+            "artifacts/cmu_panoptic_10v3/hf_vitpose_pose3_30s/evaluation_m1/assignments.jsonl",
+            "artifacts/cmu_panoptic_10v3/m2_full_pose_update_2026-07-26/pose3/evaluation_m2_v10.json",
+            "artifacts/cmu_panoptic_10v3/m2_full_pose_update_2026-07-26/pose3/evaluation_m2_v3.json",
+            "artifacts/cmu_panoptic_10v3/m2_full_pose_update_2026-07-26/pose3/evaluation_v10/summary.json",
+            "artifacts/cmu_panoptic_10v3/m2_full_pose_update_2026-07-26/pose3/evaluation_v3/summary.json",
+            "artifacts/cmu_panoptic_10v3/m2_full_pose_update_2026-07-26/pose3/comparison.json",
+            "artifacts/cmu_panoptic_10v3/hf_vitpose_haggling1_30s/frame_table.jsonl",
+            "artifacts/cmu_panoptic_10v3/hf_vitpose_haggling1_30s/m1_2d.jsonl",
+            "artifacts/cmu_panoptic_10v3/hf_vitpose_haggling1_30s/evaluation_m1/assignments.jsonl",
+            "artifacts/cmu_panoptic_10v3/m2_full_pose_update_2026-07-26/haggling1/evaluation_m2_v10.json",
+            "artifacts/cmu_panoptic_10v3/m2_full_pose_update_2026-07-26/haggling1/evaluation_m2_v3.json",
+            "artifacts/cmu_panoptic_10v3/m2_full_pose_update_2026-07-26/haggling1/evaluation_v10/summary.json",
+            "artifacts/cmu_panoptic_10v3/m2_full_pose_update_2026-07-26/haggling1/evaluation_v3/summary.json",
+            "artifacts/cmu_panoptic_10v3/m2_full_pose_update_2026-07-26/haggling1/comparison.json"
+          ],
+          "filters": [
+            "Primary totals contain 575 band1, 300 pose3, and 300 haggling1 moments.",
+            "All M1 detections are frozen; only M2 and downstream M3 are rerun.",
+            "GT confidence threshold is 0.1."
+          ],
+          "metric_definitions": [
+            "Pooled MPJPE weights each run by reconstructed eligible-joint count.",
+            "Joint availability is reconstructed eligible GT joints divided by all eligible GT joints.",
+            "M2 pairwise F1 is the harmonic mean of same-cluster pair precision and recall.",
+            "Wrong-person merge rate is the share of predicted clusters containing detections assigned to more than one GT person.",
+            "Paired uncertainty uses 2-second blocks and 2,000 bootstrap iterations."
+          ]
+        }
+      },
+      {
+        "id": "artifact_inventory",
+        "label": "Complete local experiment artifact inventory",
+        "query": {
+          "description": "Inventory of primary updated runs, their frozen baselines, rejected M2 ablations, earlier pilots, controls, and smoke tests.",
+          "engine": "duckdb",
+          "language": "sql",
+          "sql": "SELECT * FROM (VALUES ('m2_full_pose_update_2026-07-26/haggling1','2026-07-26T11:33:54-04:00','160224_haggling1',300,'Primary updated M2 rerun','Yes','Frozen M1; selected full-pose M2 score in V10 and V3.'), ('m2_full_pose_update_2026-07-26/pose3','2026-07-26T11:33:54-04:00','171026_pose3',300,'Primary updated M2 rerun','Yes','Frozen M1; selected full-pose M2 score in V10 and V3.'), ('m2_full_pose_update_2026-07-26/band1','2026-07-26T11:33:54-04:00','160906_band1',575,'Primary updated M2 rerun','Yes','Frozen M1; selected full-pose M2 score in V10 and V3.'), ('hf_vitpose_full59s_10hz','2026-07-25T09:39:09-04:00','160906_band1',575,'Frozen M1 and original M2 baseline','No','M1 input reused; original M2 retained only for before/after comparison.'), ('hf_vitpose_pose3_30s','2026-07-25T11:17:17-04:00','171026_pose3',300,'Frozen M1 and original M2 baseline','No','M1 input reused; original M2 retained only for before/after comparison.'), ('hf_vitpose_haggling1_30s','2026-07-25T11:26:22-04:00','160224_haggling1',300,'Frozen M1 and original M2 baseline','No','M1 input reused; original M2 retained only for before/after comparison.'), ('hf_vitpose_pilot20','2026-07-24T23:35:23-04:00','160906_band1',20,'Overlapping model pilot','No','Subset of band1; pooling would double-count.'), ('oracle_noise_pilot','2026-07-24T23:00:35-04:00','160906_band1',120,'Geometry-only control','No','Synthetic noisy GT inputs, not M1 model detections.'), ('hf_vitpose_smoke','2026-07-24T22:41:45-04:00','160906_band1',1,'Smoke test','No','One-frame implementation check.'), ('smoke10','2026-07-24T22:20:38-04:00','160906_band1',10,'Smoke test','No','Ten-frame implementation check; not real-model evidence.'), ('m2_simple_ablations/band1_gate20','2026-07-26T11:33:54-04:00','160906_band1',575,'M2 method ablation','No','Fewer merges, but more fragmentation'), ('m2_simple_ablations/band1_gate16','2026-07-26T11:33:54-04:00','160906_band1',575,'M2 method ablation','No','Too strict'), ('m2_simple_ablations/band1_gate12','2026-07-26T11:33:54-04:00','160906_band1',575,'M2 method ablation','No','Too strict'), ('m2_simple_ablations/band1_q060','2026-07-26T11:33:54-04:00','160906_band1',575,'M2 method ablation','No','Higher precision, much lower recall'), ('m2_simple_ablations/band1_q075','2026-07-26T11:33:54-04:00','160906_band1',575,'M2 method ablation','No','Higher precision, much lower recall'), ('m2_simple_ablations/band1_q100','2026-07-26T11:33:54-04:00','160906_band1',575,'M2 method ablation','No','Too strict')) AS inventory(run, completed_at, sequence, frames, classification, pooled, reason)",
+          "executed_at": "2026-07-26T11:33:54-04:00",
+          "tables_used": [
+            "artifacts/cmu_panoptic_10v3"
+          ],
+          "filters": [
+            "Repeated ablations are listed but excluded from the unique-moment total.",
+            "Only the three selected full-pose sequence reruns feed updated headline metrics."
+          ]
+        }
+      },
+      {
+        "id": "m2_update",
+        "label": "Frozen-detection M2 method ablations and selected full-pose rerun",
+        "query": {
+          "description": "Band1 V10 ablations plus before/after results in all six sequence-condition runs.",
+          "engine": "duckdb",
+          "language": "sql",
+          "sql": "SELECT * FROM (VALUES (1,'Original',0.8939959703,0.4627383016,18.5678287976), (2,'Gate 20 px',0.8749718183,0.4427523971,18.7741520719), (3,'Gate 16 px',0.7997703682,0.3328290469,20.2219384516), (4,'Gate 12 px',0.6617394417,0.2186136694,21.5519299197), (5,'60% camera agreement',0.8185552330,0.2433442317,20.0526280943), (6,'75% camera agreement',0.7987478071,0.2302190434,19.9070276503), (7,'All-camera agreement',0.6123723992,0.2503259452,21.5055330796), (8,'Selected: full-pose score',0.9981689486,0.0000000000,18.1643980719)) AS ablation(method_order, method, m2_pairwise_f1, wrong_person_merge_rate, mpjpe_mm)",
+          "executed_at": "2026-07-26T11:33:54-04:00",
+          "tables_used": [
+            "artifacts/cmu_panoptic_10v3/m2_simple_ablations",
+            "artifacts/cmu_panoptic_10v3/m2_full_pose_update_2026-07-26"
+          ],
+          "filters": [
+            "Ablation comparison uses the same 575 band1 moments and frozen M1 detections.",
+            "GT assignments are evaluation-only and never available to M2 inference."
+          ],
+          "metric_definitions": [
+            "Selected full-pose score changes only the reliable joints entering the confidence-weighted epipolar median.",
+            "M2 remains geometry and optimization only with 0 learned parameters."
+          ]
+        }
+      }
+    ],
+    "cards": [
+      {
+        "id": "processed_moments",
+        "description": "Non-overlapping synchronized timestamps across the three real-model runs completed July 25.",
+        "dataset": "headline",
+        "sourceId": "primary_runs",
+        "metrics": [
+          {
+            "label": "Processed moments",
+            "field": "processed_moments",
+            "format": "compact"
+          },
+          {
+            "label": "RGB camera frames",
+            "field": "camera_frames",
+            "format": "compact"
+          }
+        ]
+      },
+      {
+        "id": "pooled_mpjpe",
+        "description": "Lower is better. Pooled over reconstructed eligible joints in the three primary sequences.",
+        "dataset": "headline",
+        "sourceId": "primary_runs",
+        "metrics": [
+          {
+            "label": "V10 pooled MPJPE (mm)",
+            "field": "v10_mpjpe",
+            "format": "number"
+          },
+          {
+            "label": "V3 pooled",
+            "field": "v3_mpjpe",
+            "format": "number"
+          },
+          {
+            "label": "V3 \u2212 V10",
+            "field": "mpjpe_delta",
+            "format": "number",
+            "signed": true
+          }
+        ]
+      },
+      {
+        "id": "pooled_availability",
+        "description": "Higher is better. Missing eligible GT joints remain in the denominator.",
+        "dataset": "headline",
+        "sourceId": "primary_runs",
+        "metrics": [
+          {
+            "label": "V10 joint availability",
+            "field": "v10_availability",
+            "format": "percent"
+          },
+          {
+            "label": "V3 availability",
+            "field": "v3_availability",
+            "format": "percent"
+          },
+          {
+            "label": "V3 \u2212 V10",
+            "field": "availability_delta",
+            "format": "percent",
+            "signed": true
+          }
+        ]
+      }
+    ],
+    "charts": [
+      {
+        "id": "mpjpe_by_sequence",
+        "title": "3D joint error by sequence and camera condition",
+        "subtitle": "Ten cameras reduce MPJPE in every primary sequence; lower is better.",
+        "type": "bar",
+        "dataset": "condition_results",
+        "sourceId": "primary_runs",
+        "encodings": {
+          "x": {
+            "field": "sequence",
+            "type": "nominal",
+            "label": "Sequence"
+          },
+          "y": {
+            "field": "mpjpe_mm",
+            "type": "quantitative",
+            "label": "MPJPE",
+            "unit": "mm"
+          },
+          "color": {
+            "field": "condition",
+            "type": "nominal",
+            "label": "Camera condition"
+          },
+          "tooltip": [
+            {
+              "field": "frames",
+              "type": "quantitative",
+              "label": "Processed moments"
+            },
+            {
+              "field": "eligible_joints",
+              "type": "quantitative",
+              "label": "Eligible joints"
+            },
+            {
+              "field": "reconstructed_joints",
+              "type": "quantitative",
+              "label": "Reconstructed joints"
+            }
+          ]
+        },
+        "valueFormat": "number",
+        "unit": "mm",
+        "layout": "full"
+      },
+      {
+        "id": "availability_by_sequence",
+        "title": "3D joint availability by sequence and camera condition",
+        "subtitle": "Ten cameras reconstruct nearly every eligible joint; three-camera loss is largest in haggling1.",
+        "type": "bar",
+        "dataset": "condition_results",
+        "sourceId": "primary_runs",
+        "encodings": {
+          "x": {
+            "field": "sequence",
+            "type": "nominal",
+            "label": "Sequence"
+          },
+          "y": {
+            "field": "joint_availability",
+            "type": "quantitative",
+            "format": "percent",
+            "label": "Joint availability"
+          },
+          "color": {
+            "field": "condition",
+            "type": "nominal",
+            "label": "Camera condition"
+          },
+          "tooltip": [
+            {
+              "field": "eligible_joints",
+              "type": "quantitative",
+              "label": "Eligible joints"
+            },
+            {
+              "field": "reconstructed_joints",
+              "type": "quantitative",
+              "label": "Reconstructed joints"
+            },
+            {
+              "field": "person_recall",
+              "type": "quantitative",
+              "format": "percent",
+              "label": "Person recall"
+            }
+          ]
+        },
+        "valueFormat": "percent",
+        "layout": "full"
+      },
+      {
+        "id": "m2_f1_by_sequence",
+        "title": "M2 cross-camera association F1 by sequence and camera condition",
+        "subtitle": "Full-pose epipolar scoring removes the previous band1 V10 outlier.",
+        "type": "bar",
+        "dataset": "condition_results",
+        "sourceId": "primary_runs",
+        "encodings": {
+          "x": {
+            "field": "sequence",
+            "type": "nominal",
+            "label": "Sequence"
+          },
+          "y": {
+            "field": "m2_pairwise_f1",
+            "type": "quantitative",
+            "format": "percent",
+            "label": "Pairwise F1"
+          },
+          "color": {
+            "field": "condition",
+            "type": "nominal",
+            "label": "Camera condition"
+          },
+          "tooltip": [
+            {
+              "field": "m2_pairwise_precision",
+              "type": "quantitative",
+              "format": "percent",
+              "label": "Pairwise precision"
+            },
+            {
+              "field": "m2_pairwise_recall",
+              "type": "quantitative",
+              "format": "percent",
+              "label": "Pairwise recall"
+            },
+            {
+              "field": "wrong_person_merge_rate",
+              "type": "quantitative",
+              "format": "percent",
+              "label": "Wrong-person merge rate"
+            }
+          ]
+        },
+        "valueFormat": "percent",
+        "layout": "full"
+      },
+      {
+        "id": "m2_before_after_chart",
+        "title": "M2 pairwise F1 before and after the full-pose score",
+        "subtitle": "The selected score improves association in all six reviewed runs.",
+        "type": "bar",
+        "dataset": "m2_before_after",
+        "sourceId": "m2_update",
+        "encodings": {
+          "x": {
+            "field": "sequence_condition",
+            "type": "nominal",
+            "label": "Sequence and camera condition"
+          },
+          "y": {
+            "field": "m2_pairwise_f1",
+            "type": "quantitative",
+            "format": "percent",
+            "label": "Pairwise F1"
+          },
+          "color": {
+            "field": "variant",
+            "type": "nominal",
+            "label": "M2 score"
+          }
+        },
+        "valueFormat": "percent",
+        "layout": "full"
+      }
+    ],
+    "tables": [
+      {
+        "id": "sequence_comparison",
+        "title": "Exact primary 10-vs-3 results",
+        "subtitle": "MPJPE deltas are V3 minus V10; positive values favor V10.",
+        "dataset": "sequence_comparison",
+        "sourceId": "primary_runs",
+        "defaultSort": {
+          "field": "frames",
+          "direction": "desc"
+        },
+        "density": "dense",
+        "layout": "full",
+        "columns": [
+          {
+            "field": "sequence",
+            "label": "Sequence",
+            "type": "text"
+          },
+          {
+            "field": "frames",
+            "label": "Moments",
+            "format": "compact"
+          },
+          {
+            "field": "eligible_joints",
+            "label": "Eligible joints",
+            "format": "compact"
+          },
+          {
+            "field": "v10_mpjpe",
+            "label": "V10 MPJPE (mm)",
+            "format": "number"
+          },
+          {
+            "field": "v3_mpjpe",
+            "label": "V3 MPJPE (mm)",
+            "format": "number"
+          },
+          {
+            "field": "delta_mpjpe",
+            "label": "\u0394 MPJPE (mm)",
+            "format": "number",
+            "movement": true
+          },
+          {
+            "field": "ci95",
+            "label": "95% CI (mm)",
+            "type": "text"
+          },
+          {
+            "field": "v10_pck50",
+            "label": "V10 PCK@50",
+            "format": "percent"
+          },
+          {
+            "field": "v3_pck50",
+            "label": "V3 PCK@50",
+            "format": "percent"
+          },
+          {
+            "field": "v10_availability",
+            "label": "V10 availability",
+            "format": "percent"
+          },
+          {
+            "field": "v3_availability",
+            "label": "V3 availability",
+            "format": "percent"
+          }
+        ]
+      },
+      {
+        "id": "artifact_inventory_table",
+        "title": "All available experiment directories",
+        "subtitle": "Updated full-pose reruns drive the headline; baselines and ablations are retained for audit.",
+        "dataset": "inventory",
+        "sourceId": "artifact_inventory",
+        "defaultSort": {
+          "field": "completed_at",
+          "direction": "desc"
+        },
+        "density": "dense",
+        "layout": "full",
+        "columns": [
+          {
+            "field": "run",
+            "label": "Run",
+            "type": "text"
+          },
+          {
+            "field": "completed_at",
+            "label": "Evaluation completed",
+            "type": "date"
+          },
+          {
+            "field": "sequence",
+            "label": "Sequence",
+            "type": "text"
+          },
+          {
+            "field": "frames",
+            "label": "Moments",
+            "format": "compact"
+          },
+          {
+            "field": "classification",
+            "label": "Classification",
+            "type": "text"
+          },
+          {
+            "field": "pooled",
+            "label": "In pooled result?",
+            "type": "text"
+          },
+          {
+            "field": "reason",
+            "label": "Interpretation",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "id": "qa_table",
+        "title": "Data integrity checks for the three primary runs",
+        "subtitle": "All primary artifacts passed the local consistency checks listed below.",
+        "dataset": "qa_checks",
+        "sourceId": "primary_runs",
+        "defaultSort": {
+          "field": "sequence",
+          "direction": "asc"
+        },
+        "density": "dense",
+        "layout": "full",
+        "columns": [
+          {
+            "field": "sequence",
+            "label": "Sequence",
+            "type": "text"
+          },
+          {
+            "field": "frame_rows",
+            "label": "Frame rows",
+            "format": "compact"
+          },
+          {
+            "field": "m1_rows",
+            "label": "M1 camera rows",
+            "format": "compact"
+          },
+          {
+            "field": "duplicate_m1_keys",
+            "label": "Duplicate M1 keys",
+            "format": "number"
+          },
+          {
+            "field": "m3_v10_rows",
+            "label": "M3 V10 rows",
+            "format": "compact"
+          },
+          {
+            "field": "m3_v3_rows",
+            "label": "M3 V3 rows",
+            "format": "compact"
+          },
+          {
+            "field": "depth_rows",
+            "label": "Depth rows",
+            "format": "compact"
+          },
+          {
+            "field": "hashes",
+            "label": "Manifest hashes",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "id": "method_ablation_table",
+        "title": "Band1 V10 simple-method ablation",
+        "subtitle": "All variants reuse the same 575 moments and frozen M1 detections.",
+        "dataset": "method_ablation",
+        "sourceId": "m2_update",
+        "defaultSort": {
+          "field": "order",
+          "direction": "asc"
+        },
+        "density": "dense",
+        "layout": "full",
+        "columns": [
+          {
+            "field": "order",
+            "label": "#",
+            "format": "number"
+          },
+          {
+            "field": "method",
+            "label": "Method",
+            "type": "text"
+          },
+          {
+            "field": "change",
+            "label": "Only change",
+            "type": "text"
+          },
+          {
+            "field": "m2_pairwise_f1",
+            "label": "M2 F1",
+            "format": "percent"
+          },
+          {
+            "field": "wrong_person_merge_rate",
+            "label": "Wrong-merge clusters",
+            "format": "percent"
+          },
+          {
+            "field": "mpjpe_mm",
+            "label": "MPJPE (mm)",
+            "format": "number"
+          },
+          {
+            "field": "interpretation",
+            "label": "Decision",
+            "type": "text"
+          }
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "title",
+        "type": "markdown",
+        "body": "# CMU Panoptic 10-vs-3 Camera Study: Updated M2 Results",
+        "layout": "full"
+      },
+      {
+        "id": "technical_summary",
+        "type": "markdown",
+        "body": "## Technical summary\n\nAll **1,175 synchronized moments** (**11,750 RGB frames**) were rerun from the same frozen M1 detections after one small M2 change. M2 now scores all reliable common joints instead of discarding limbs whenever two torso joints are visible. On the difficult band1 V10 run, pairwise F1 improves from **89.40%** to **99.82%**, wrong-person merge clusters fall from **46.27%** to **0.00%**, and MPJPE improves from **18.57** to **18.16 mm**.\n\nWith updated M2, pooled V10 MPJPE is **19.17 mm** versus **32.47 mm** for V3; joint availability is **100.00%** versus **91.51%**.",
+        "sourceId": "primary_runs",
+        "layout": "full"
+      },
+      {
+        "id": "headline_metrics",
+        "type": "metric-strip",
+        "cardIds": [
+          "processed_moments",
+          "pooled_mpjpe",
+          "pooled_availability"
+        ],
+        "layout": "full"
+      },
+      {
+        "id": "key_findings",
+        "type": "markdown",
+        "body": "## Key findings\n\n1. **The selected change is minimal:** M2 keeps the same calibration, epipolar geometry, confidence weighting, Hungarian matching, and 25 px gate; only the reliable joints entering the pair score change.\n2. **It improves M2 F1 in all six sequence/condition runs.** The largest gain is band1 V10, the original failure case.\n3. **It does not trade association for worse 3D output.** MPJPE improves in five of six runs; pose3 V10 changes by only +0.01 mm.\n4. **Ten cameras still win the main comparison.** Every updated per-sequence bootstrap interval for V3\u2212V10 MPJPE remains above zero.",
+        "sourceId": "primary_runs",
+        "layout": "full"
+      },
+      {
+        "id": "m2_update_heading",
+        "type": "markdown",
+        "body": "## What changed, what was added, and why it helps\n\n- **Changed:** the pair cost now uses every joint visible with sufficient confidence in both cameras. Previously, seeing two torso joints caused M2 to ignore the remaining joints.\n- **Added:** one focused regression test and a frozen-detection ablation across gate tightening, stricter camera agreement, and the full-pose score. No learned component or extra inference stage was added.\n- **Intuition:** two nearby people can have shoulders and hips near the same epipolar lines. Their elbows, wrists, knees, and ankles usually provide more distinctive geometric evidence. The confidence-weighted median remains robust to a few noisy limb joints.",
+        "sourceId": "m2_update",
+        "layout": "full"
+      },
+      {
+        "id": "m2_before_after_chart_block",
+        "type": "chart",
+        "chartId": "m2_before_after_chart",
+        "layout": "full"
+      },
+      {
+        "id": "method_ablation_table_block",
+        "type": "table",
+        "tableId": "method_ablation_table",
+        "layout": "full"
+      },
+      {
+        "id": "method_choice_interpretation",
+        "type": "markdown",
+        "body": "Gate tightening and stricter camera agreement reduce some false links, but they also reject many correct links and split one person into multiple clusters. The full-pose score is the only tested option that sharply improves association while preserving or improving the final 3D result.",
+        "sourceId": "m2_update",
+        "layout": "full"
+      },
+      {
+        "id": "mpjpe_chart",
+        "type": "chart",
+        "chartId": "mpjpe_by_sequence",
+        "layout": "full"
+      },
+      {
+        "id": "mpjpe_interpretation",
+        "type": "markdown",
+        "body": "The V3\u2212V10 gap remains positive in all sequences after the M2 update. Read MPJPE with availability because MPJPE averages only reconstructed eligible joints.",
+        "sourceId": "primary_runs",
+        "layout": "full"
+      },
+      {
+        "id": "availability_chart",
+        "type": "chart",
+        "chartId": "availability_by_sequence",
+        "layout": "full"
+      },
+      {
+        "id": "availability_interpretation",
+        "type": "markdown",
+        "body": "V10 reconstructs almost every eligible joint. Updated V3 gains a little coverage from cleaner association, but still loses the most joints in haggling1, where occlusion is strongest.",
+        "sourceId": "primary_runs",
+        "layout": "full"
+      },
+      {
+        "id": "m2_chart",
+        "type": "chart",
+        "chartId": "m2_f1_by_sequence",
+        "layout": "full"
+      },
+      {
+        "id": "m2_interpretation",
+        "type": "markdown",
+        "body": "M2 pairwise F1 checks both cluster purity and recovery of correct same-person camera pairs. The updated score improves every run, including band1 V10 from 89.40% to 99.82%. GT person IDs are never used during inference; they are used only after clustering for this diagnostic.",
+        "sourceId": "primary_runs",
+        "layout": "full"
+      },
+      {
+        "id": "scope_definitions",
+        "type": "markdown",
+        "body": "## Scope, data, and metric definitions\n\nThe primary comparison uses the same M1 detections for V10 and V3 within each sequence. V10 uses cameras 50_01 through 50_10; V3 uses the fixed balanced subset 50_06, 50_04, and 50_02. Frames were sampled at stride 3, approximately 10 Hz. The three primary runs represent about **117.5 seconds** of sampled synchronized data.\n\n- **MPJPE:** mean Euclidean error of reconstructed eligible 3D joints; lower is better.\n- **PCK@50:** share of reconstructed joints within 50 mm; higher is better.\n- **Joint availability:** reconstructed eligible joints divided by all eligible GT joints; higher is better.\n- **Person precision/recall:** matching uses a 1,000 mm 3D gate. Precision penalizes extra predicted people; recall penalizes missed GT people.\n- **M2 pairwise F1:** quality of same-person cross-camera clustering, evaluated with GT labels only after inference.\n- **95% CI:** paired 2-second block bootstrap over frames, 2,000 iterations. A positive V3\u2212V10 interval means V3 has higher error.",
+        "sourceId": "primary_runs",
+        "layout": "full"
+      },
+      {
+        "id": "exact_results",
+        "type": "table",
+        "tableId": "sequence_comparison",
+        "layout": "full"
+      },
+      {
+        "id": "methodology",
+        "type": "markdown",
+        "body": "## Methodology\n\nM1 is unchanged: RT-DETR-R50 detects people and ViTPose-Base predicts COCO-17 joints. M2 undistorts joints using CMU calibration. For every candidate pair, it measures symmetric epipolar distance for all joints scored at least 0.10 in both cameras, weights each distance by the geometric mean of the two joint confidences, and uses the weighted median as the pair cost. Camera-to-cluster costs remain the median across existing members; Hungarian assignment and the 25 px gate are unchanged.\n\nM3 is unchanged: robust multiview triangulation uses a 12 px reprojection threshold, followed by refinement and 30 cm 3D duplicate suppression. Evaluation uses GT confidence >0.1 and paired 2-second block bootstrap intervals with 2,000 iterations.",
+        "sourceId": "primary_runs",
+        "layout": "full"
+      },
+      {
+        "id": "limitations",
+        "type": "markdown",
+        "body": "## Limitations, uncertainty, and robustness\n\n- The update was selected after inspecting performance on these three sequences, so a distinct held-out sequence is still needed to estimate generalization without selection bias.\n- Only three sequences and about 117.5 seconds of synchronized data are included.\n- V10 and V3 can reconstruct different joint sets; availability must remain beside MPJPE and PCK.\n- Haggling1 has 285 paired bootstrap frames although 300 moments were processed; its interval uses the common evaluable subset.\n- The method remains geometry-only with 0 learned M2 parameters; it can still struggle when multiple people have similar poses along ambiguous epipolar lines.",
+        "sourceId": "primary_runs",
+        "layout": "full"
+      },
+      {
+        "id": "inventory_heading",
+        "type": "markdown",
+        "body": "## Complete artifact inventory\n\nThe inventory now includes the three updated full-pose reruns and the Band1 V10 ablations. Repeated ablations use the same 575 moments and are not added to the 1,175-moment primary total.",
+        "sourceId": "artifact_inventory",
+        "layout": "full"
+      },
+      {
+        "id": "inventory_table_block",
+        "type": "table",
+        "tableId": "artifact_inventory_table",
+        "layout": "full"
+      },
+      {
+        "id": "qa_heading",
+        "type": "markdown",
+        "body": "## Data-quality audit\n\nThe updated evaluation reuses the validated M1 caches and GT assignment files. Every updated V10 and V3 output has exactly one row per source moment (575, 300, and 300), and all six evaluations completed.",
+        "sourceId": "primary_runs",
+        "layout": "full"
+      },
+      {
+        "id": "qa_table_block",
+        "type": "table",
+        "tableId": "qa_table",
+        "layout": "full"
+      },
+      {
+        "id": "recommended_next_steps",
+        "type": "markdown",
+        "body": "## Recommended next steps\n\n1. Freeze the full-pose score as the default M2 pathway.\n2. Validate it on a new crowded sequence not used to choose the method.\n3. Only add a more complex cue\u2014appearance or temporal consistency\u2014if that held-out test exposes a remaining failure that geometry cannot resolve.",
+        "layout": "full"
+      },
+      {
+        "id": "further_questions",
+        "type": "markdown",
+        "body": "## Further questions\n\n- Does the improvement hold on an unseen crowded sequence?\n- Which limb joints contribute most to resolving close-person ambiguity?\n- Can the same full-pose score improve arbitrary three-camera subsets, not only the fixed balanced V3 subset?",
+        "layout": "full"
+      }
+    ]
+  },
+  "snapshot": {
+    "version": 1,
+    "generatedAt": "2026-07-26T11:33:54-04:00",
+    "status": "ready",
+    "datasets": {
+      "headline": [
+        {
+          "processed_moments": 1175,
+          "camera_frames": 11750,
+          "m1_detections": 27582,
+          "eligible_3d_joints": 47496,
+          "v10_mpjpe": 19.169538885835834,
+          "v3_mpjpe": 32.4653397293832,
+          "mpjpe_delta": 13.295800843547369,
+          "v10_availability": 0.9999578911908371,
+          "v3_availability": 0.9150665319184773,
+          "availability_delta": -0.0848913592723598
+        }
+      ],
+      "condition_results": [
+        {
+          "sequence": "band1",
+          "condition": "V10",
+          "frames": 575,
+          "eligible_joints": 28678,
+          "reconstructed_joints": 28678,
+          "mpjpe_mm": 18.164398071855945,
+          "pck50": 0.945114722086617,
+          "pck100": 0.9898528488737011,
+          "joint_availability": 1.0,
+          "person_precision": 0.9988419224088014,
+          "person_recall": 1.0,
+          "m2_pairwise_f1": 0.9981689486485749,
+          "m2_pairwise_precision": 0.9999726214921287,
+          "m2_pairwise_recall": 0.9963717707395586,
+          "wrong_person_merge_rate": 0.0
+        },
+        {
+          "sequence": "band1",
+          "condition": "V3",
+          "frames": 575,
+          "eligible_joints": 28678,
+          "reconstructed_joints": 26540,
+          "mpjpe_mm": 33.84442270312856,
+          "pck50": 0.8155990957045969,
+          "pck100": 0.9366616428033158,
+          "joint_availability": 0.9254480786665736,
+          "person_precision": 1.0,
+          "person_recall": 1.0,
+          "m2_pairwise_f1": 0.9986296006264683,
+          "m2_pairwise_precision": 1.0,
+          "m2_pairwise_recall": 0.9972629521016618,
+          "wrong_person_merge_rate": 0.0
+        },
+        {
+          "sequence": "pose3",
+          "condition": "V10",
+          "frames": 300,
+          "eligible_joints": 5079,
+          "reconstructed_joints": 5079,
+          "mpjpe_mm": 17.985974409358633,
+          "pck50": 0.9738137428627682,
+          "pck100": 0.9998031108485922,
+          "joint_availability": 1.0,
+          "person_precision": 0.9966777408637874,
+          "person_recall": 1.0,
+          "m2_pairwise_f1": 0.9969911964637272,
+          "m2_pairwise_precision": 0.999925489903882,
+          "m2_pairwise_recall": 0.9940740740740741,
+          "wrong_person_merge_rate": 0.0
+        },
+        {
+          "sequence": "pose3",
+          "condition": "V3",
+          "frames": 300,
+          "eligible_joints": 5079,
+          "reconstructed_joints": 5013,
+          "mpjpe_mm": 26.39289650250146,
+          "pck50": 0.917015759026531,
+          "pck100": 0.9862357869539198,
+          "joint_availability": 0.987005316007088,
+          "person_precision": 1.0,
+          "person_recall": 1.0,
+          "m2_pairwise_f1": 1.0,
+          "m2_pairwise_precision": 1.0,
+          "m2_pairwise_recall": 1.0,
+          "wrong_person_merge_rate": 0.0
+        },
+        {
+          "sequence": "haggling1",
+          "condition": "V10",
+          "frames": 300,
+          "eligible_joints": 13739,
+          "reconstructed_joints": 13737,
+          "mpjpe_mm": 21.705518520351593,
+          "pck50": 0.949697896192764,
+          "pck100": 0.9881342360049501,
+          "joint_availability": 0.9998544289977437,
+          "person_precision": 0.9377880184331797,
+          "person_recall": 0.996328029375765,
+          "m2_pairwise_f1": 0.9808684607446216,
+          "m2_pairwise_precision": 0.9914623186545127,
+          "m2_pairwise_recall": 0.9704986019039241,
+          "wrong_person_merge_rate": 0.0034562211981566822
+        },
+        {
+          "sequence": "haggling1",
+          "condition": "V3",
+          "frames": 300,
+          "eligible_joints": 13739,
+          "reconstructed_joints": 11909,
+          "mpjpe_mm": 31.948108708571755,
+          "pck50": 0.8564111176421194,
+          "pck100": 0.9735494164077588,
+          "joint_availability": 0.8668025329354393,
+          "person_precision": 0.9753086419753086,
+          "person_recall": 0.966952264381885,
+          "m2_pairwise_f1": 0.9804320203303686,
+          "m2_pairwise_precision": 0.9892307692307692,
+          "m2_pairwise_recall": 0.9717884130982368,
+          "wrong_person_merge_rate": 0.0
+        }
+      ],
+      "sequence_comparison": [
+        {
+          "sequence": "160906_band1",
+          "frames": 575,
+          "eligible_joints": 28678,
+          "v10_mpjpe": 18.164398071855945,
+          "v3_mpjpe": 33.84442270312856,
+          "delta_mpjpe": 15.680024631272612,
+          "ci95": "[14.93, 16.71]",
+          "v10_pck50": 0.945114722086617,
+          "v3_pck50": 0.8155990957045969,
+          "v10_availability": 1.0,
+          "v3_availability": 0.9254480786665736
+        },
+        {
+          "sequence": "171026_pose3",
+          "frames": 300,
+          "eligible_joints": 5079,
+          "v10_mpjpe": 17.985974409358633,
+          "v3_mpjpe": 26.39289650250146,
+          "delta_mpjpe": 8.406922093142828,
+          "ci95": "[7.26, 10.06]",
+          "v10_pck50": 0.9738137428627682,
+          "v3_pck50": 0.917015759026531,
+          "v10_availability": 1.0,
+          "v3_availability": 0.987005316007088
+        },
+        {
+          "sequence": "160224_haggling1",
+          "frames": 300,
+          "eligible_joints": 13739,
+          "v10_mpjpe": 21.705518520351593,
+          "v3_mpjpe": 31.948108708571755,
+          "delta_mpjpe": 10.242590188220163,
+          "ci95": "[6.08, 13.69]",
+          "v10_pck50": 0.949697896192764,
+          "v3_pck50": 0.8564111176421194,
+          "v10_availability": 0.9998544289977437,
+          "v3_availability": 0.8668025329354393
+        }
+      ],
+      "inventory": [
+        {
+          "run": "m2_full_pose_update_2026-07-26/haggling1",
+          "completed_at": "2026-07-26T11:33:54-04:00",
+          "sequence": "160224_haggling1",
+          "frames": 300,
+          "classification": "Primary updated M2 rerun",
+          "pooled": "Yes",
+          "reason": "Frozen M1; selected full-pose M2 score in V10 and V3."
+        },
+        {
+          "run": "m2_full_pose_update_2026-07-26/pose3",
+          "completed_at": "2026-07-26T11:33:54-04:00",
+          "sequence": "171026_pose3",
+          "frames": 300,
+          "classification": "Primary updated M2 rerun",
+          "pooled": "Yes",
+          "reason": "Frozen M1; selected full-pose M2 score in V10 and V3."
+        },
+        {
+          "run": "m2_full_pose_update_2026-07-26/band1",
+          "completed_at": "2026-07-26T11:33:54-04:00",
+          "sequence": "160906_band1",
+          "frames": 575,
+          "classification": "Primary updated M2 rerun",
+          "pooled": "Yes",
+          "reason": "Frozen M1; selected full-pose M2 score in V10 and V3."
+        },
+        {
+          "run": "hf_vitpose_full59s_10hz",
+          "completed_at": "2026-07-25T09:39:09-04:00",
+          "sequence": "160906_band1",
+          "frames": 575,
+          "classification": "Frozen M1 and original M2 baseline",
+          "pooled": "No",
+          "reason": "M1 input reused; original M2 retained only for before/after comparison."
+        },
+        {
+          "run": "hf_vitpose_pose3_30s",
+          "completed_at": "2026-07-25T11:17:17-04:00",
+          "sequence": "171026_pose3",
+          "frames": 300,
+          "classification": "Frozen M1 and original M2 baseline",
+          "pooled": "No",
+          "reason": "M1 input reused; original M2 retained only for before/after comparison."
+        },
+        {
+          "run": "hf_vitpose_haggling1_30s",
+          "completed_at": "2026-07-25T11:26:22-04:00",
+          "sequence": "160224_haggling1",
+          "frames": 300,
+          "classification": "Frozen M1 and original M2 baseline",
+          "pooled": "No",
+          "reason": "M1 input reused; original M2 retained only for before/after comparison."
+        },
+        {
+          "run": "hf_vitpose_pilot20",
+          "completed_at": "2026-07-24T23:35:23-04:00",
+          "sequence": "160906_band1",
+          "frames": 20,
+          "classification": "Overlapping model pilot",
+          "pooled": "No",
+          "reason": "Subset of band1; pooling would double-count."
+        },
+        {
+          "run": "oracle_noise_pilot",
+          "completed_at": "2026-07-24T23:00:35-04:00",
+          "sequence": "160906_band1",
+          "frames": 120,
+          "classification": "Geometry-only control",
+          "pooled": "No",
+          "reason": "Synthetic noisy GT inputs, not M1 model detections."
+        },
+        {
+          "run": "hf_vitpose_smoke",
+          "completed_at": "2026-07-24T22:41:45-04:00",
+          "sequence": "160906_band1",
+          "frames": 1,
+          "classification": "Smoke test",
+          "pooled": "No",
+          "reason": "One-frame implementation check."
+        },
+        {
+          "run": "smoke10",
+          "completed_at": "2026-07-24T22:20:38-04:00",
+          "sequence": "160906_band1",
+          "frames": 10,
+          "classification": "Smoke test",
+          "pooled": "No",
+          "reason": "Ten-frame implementation check; not real-model evidence."
+        },
+        {
+          "run": "m2_simple_ablations/band1_gate20",
+          "completed_at": "2026-07-26T11:33:54-04:00",
+          "sequence": "160906_band1",
+          "frames": 575,
+          "classification": "M2 method ablation",
+          "pooled": "No",
+          "reason": "Fewer merges, but more fragmentation"
+        },
+        {
+          "run": "m2_simple_ablations/band1_gate16",
+          "completed_at": "2026-07-26T11:33:54-04:00",
+          "sequence": "160906_band1",
+          "frames": 575,
+          "classification": "M2 method ablation",
+          "pooled": "No",
+          "reason": "Too strict"
+        },
+        {
+          "run": "m2_simple_ablations/band1_gate12",
+          "completed_at": "2026-07-26T11:33:54-04:00",
+          "sequence": "160906_band1",
+          "frames": 575,
+          "classification": "M2 method ablation",
+          "pooled": "No",
+          "reason": "Too strict"
+        },
+        {
+          "run": "m2_simple_ablations/band1_q060",
+          "completed_at": "2026-07-26T11:33:54-04:00",
+          "sequence": "160906_band1",
+          "frames": 575,
+          "classification": "M2 method ablation",
+          "pooled": "No",
+          "reason": "Higher precision, much lower recall"
+        },
+        {
+          "run": "m2_simple_ablations/band1_q075",
+          "completed_at": "2026-07-26T11:33:54-04:00",
+          "sequence": "160906_band1",
+          "frames": 575,
+          "classification": "M2 method ablation",
+          "pooled": "No",
+          "reason": "Higher precision, much lower recall"
+        },
+        {
+          "run": "m2_simple_ablations/band1_q100",
+          "completed_at": "2026-07-26T11:33:54-04:00",
+          "sequence": "160906_band1",
+          "frames": 575,
+          "classification": "M2 method ablation",
+          "pooled": "No",
+          "reason": "Too strict"
+        }
+      ],
+      "qa_checks": [
+        {
+          "sequence": "160906_band1",
+          "frame_rows": 575,
+          "m1_rows": 5750,
+          "duplicate_m1_keys": 0,
+          "m3_v10_rows": 575,
+          "m3_v3_rows": 575,
+          "depth_rows": 575,
+          "hashes": "Frozen M1 inputs; updated V10/V3 outputs complete"
+        },
+        {
+          "sequence": "171026_pose3",
+          "frame_rows": 300,
+          "m1_rows": 3000,
+          "duplicate_m1_keys": 0,
+          "m3_v10_rows": 300,
+          "m3_v3_rows": 300,
+          "depth_rows": 300,
+          "hashes": "Frozen M1 inputs; updated V10/V3 outputs complete"
+        },
+        {
+          "sequence": "160224_haggling1",
+          "frame_rows": 300,
+          "m1_rows": 3000,
+          "duplicate_m1_keys": 0,
+          "m3_v10_rows": 300,
+          "m3_v3_rows": 300,
+          "depth_rows": 300,
+          "hashes": "Frozen M1 inputs; updated V10/V3 outputs complete"
+        }
+      ],
+      "m2_before_after": [
+        {
+          "sequence_condition": "band1 V10",
+          "variant": "Original torso-priority score",
+          "m2_pairwise_f1": 0.8939959702652336
+        },
+        {
+          "sequence_condition": "band1 V10",
+          "variant": "Selected full-pose score",
+          "m2_pairwise_f1": 0.9981689486485749
+        },
+        {
+          "sequence_condition": "band1 V3",
+          "variant": "Original torso-priority score",
+          "m2_pairwise_f1": 0.989542225730071
+        },
+        {
+          "sequence_condition": "band1 V3",
+          "variant": "Selected full-pose score",
+          "m2_pairwise_f1": 0.9986296006264683
+        },
+        {
+          "sequence_condition": "pose3 V10",
+          "variant": "Original torso-priority score",
+          "m2_pairwise_f1": 0.9950500576872977
+        },
+        {
+          "sequence_condition": "pose3 V10",
+          "variant": "Selected full-pose score",
+          "m2_pairwise_f1": 0.9969911964637272
+        },
+        {
+          "sequence_condition": "pose3 V3",
+          "variant": "Original torso-priority score",
+          "m2_pairwise_f1": 0.9876265466816647
+        },
+        {
+          "sequence_condition": "pose3 V3",
+          "variant": "Selected full-pose score",
+          "m2_pairwise_f1": 1.0
+        },
+        {
+          "sequence_condition": "haggling1 V10",
+          "variant": "Original torso-priority score",
+          "m2_pairwise_f1": 0.9685385330810429
+        },
+        {
+          "sequence_condition": "haggling1 V10",
+          "variant": "Selected full-pose score",
+          "m2_pairwise_f1": 0.9808684607446216
+        },
+        {
+          "sequence_condition": "haggling1 V3",
+          "variant": "Original torso-priority score",
+          "m2_pairwise_f1": 0.9718381976446494
+        },
+        {
+          "sequence_condition": "haggling1 V3",
+          "variant": "Selected full-pose score",
+          "m2_pairwise_f1": 0.9804320203303686
+        }
+      ],
+      "method_ablation": [
+        {
+          "order": 1,
+          "method": "Original",
+          "change": "Torso-priority score; 25 px gate",
+          "m2_pairwise_f1": 0.8939959702652336,
+          "wrong_person_merge_rate": 0.462738301559792,
+          "mpjpe_mm": 18.567828797568243,
+          "interpretation": "Reference"
+        },
+        {
+          "order": 2,
+          "method": "Gate 20 px",
+          "change": "Only tighten the gate",
+          "m2_pairwise_f1": 0.8749718182842972,
+          "wrong_person_merge_rate": 0.4427523970671179,
+          "mpjpe_mm": 18.774152071911015,
+          "interpretation": "Fewer merges, but more fragmentation"
+        },
+        {
+          "order": 3,
+          "method": "Gate 16 px",
+          "change": "Only tighten the gate",
+          "m2_pairwise_f1": 0.7997703681866845,
+          "wrong_person_merge_rate": 0.3328290468986384,
+          "mpjpe_mm": 20.221938451557552,
+          "interpretation": "Too strict"
+        },
+        {
+          "order": 4,
+          "method": "Gate 12 px",
+          "change": "Only tighten the gate",
+          "m2_pairwise_f1": 0.6617394416607015,
+          "wrong_person_merge_rate": 0.21861366941347551,
+          "mpjpe_mm": 21.55192991972379,
+          "interpretation": "Too strict"
+        },
+        {
+          "order": 5,
+          "method": "60% camera agreement",
+          "change": "Use a more conservative cluster-cost quantile",
+          "m2_pairwise_f1": 0.8185552330357632,
+          "wrong_person_merge_rate": 0.24334423166744512,
+          "mpjpe_mm": 20.05262809429807,
+          "interpretation": "Higher precision, much lower recall"
+        },
+        {
+          "order": 6,
+          "method": "75% camera agreement",
+          "change": "Use a more conservative cluster-cost quantile",
+          "m2_pairwise_f1": 0.79874780705284,
+          "wrong_person_merge_rate": 0.23021904336164506,
+          "mpjpe_mm": 19.90702765034182,
+          "interpretation": "Higher precision, much lower recall"
+        },
+        {
+          "order": 7,
+          "method": "All-camera agreement",
+          "change": "Use maximum cluster cost",
+          "m2_pairwise_f1": 0.6123723991744296,
+          "wrong_person_merge_rate": 0.2503259452411995,
+          "mpjpe_mm": 21.505533079611205,
+          "interpretation": "Too strict"
+        },
+        {
+          "order": 8,
+          "method": "Selected: full-pose score",
+          "change": "Use all reliable common joints; keep the 25 px gate",
+          "m2_pairwise_f1": 0.9981689486485749,
+          "wrong_person_merge_rate": 0.0,
+          "mpjpe_mm": 18.164398071855945,
+          "interpretation": "Best balance; selected"
+        }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "id": "primary_runs",
+      "label": "Frozen M1 inputs and updated full-pose M2/M3 evaluations"
+    },
+    {
+      "id": "artifact_inventory",
+      "label": "Complete local experiment artifact inventory"
+    },
+    {
+      "id": "m2_update",
+      "label": "Frozen-detection M2 method ablations and selected full-pose rerun"
+    }
+  ]
+}

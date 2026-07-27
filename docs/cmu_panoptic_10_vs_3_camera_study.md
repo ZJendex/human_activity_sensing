@@ -26,7 +26,7 @@ Last updated: 2026-07-25.
 | **M2 / cross-view association** | 判断同一时刻、不同 cameras 的哪些 detections 属于同一个 physical person。 | `Cam1 #0 ↔ Cam2 #1 ↔ Cam3 #0`。 |
 | **Person cluster** | M2 建立的临时 detection group；每个 camera 最多贡献一个 detection，且尚未有 GT identity。 | `[Cam1 #0, Cam2 #1, Cam3 #0]` 将生成一个 3D skeleton。 |
 | **Epipolar distance** | 一个 camera 的 joint 根据 calibration 在另一个 camera 中对应一条 epipolar line；candidate joint 到该线的 pixel distance 是几何一致性误差。 | 距离越小，两个 2D poses 越可能是同一个人。 |
-| **Matching cost** | 算法为一个 possible match 计算的“不相似度”；越小越好。M2 优先 torso joints，并用 joint confidence 加权。 | Cluster A 与 `Cam2 #1` 的 cost 可能是 `6 px`。 |
+| **Matching cost** | 算法为一个 possible match 计算的“不相似度”；越小越好。当前 M2 使用两个 detections 中所有可靠的同名 joints，以 joint confidence 加权后取 epipolar distance 的 weighted median。 | Cluster A 与 `Cam2 #1` 的 cost 可能是 `6 px`。 |
 | **Gate / threshold** | 接受结果所允许的最大误差；超过 gate 就拒绝，不是 learned parameter。 | M2 gate `25 px`；M3 reprojection gate `12 px`；evaluation person gate `1000 mm`。 |
 | **Hungarian matching** | 在一个 cost matrix 中寻找最小总 cost 的 one-to-one assignment。一个 cluster 与当前 camera detection 都最多使用一次。 | 防止 Cluster A 和 B 同时认领 `Cam2 #1`。 |
 | **M3 / triangulation** | 对一个 person cluster 中同名 joints 的 calibrated rays 求 3D intersection。 | 至少两个 views 的 left wrist 才能重建 3D left wrist。 |
@@ -368,6 +368,9 @@ M2 split clusters 会产生同一个人的重复 3D skeleton。实现使用 deve
 
 ### Full common-window ViTPose result
 
+以下先记录 2026-07-25 的 original torso-priority M2 baseline；2026-07-26
+full-pose M2 update 的完整六组重跑结果见本节末的 updated report。
+
 M4 Pro full-MPS run 覆盖 575 个 all-ten-view synchronized frames、57.56 s、
 5750 camera-frames 和 16,785 frozen person detections。RT-DETR 与 ViTPose
 均使用 FP32 MPS，runtime 没有 fallback；M1 inference（含 model load）耗时
@@ -394,11 +397,18 @@ Long-run M1 aggregate：person precision / recall 为
 `99.92% / 97.22%`，mean / median joint error 为
 `17.53 / 8.06 px`，joint availability 为 `97.29%`。
 
-M2 audit 暴露了一个重要工程问题：V10 pairwise F1 只有 `89.40%`，而 V3 为
+Original M2 audit 暴露了一个重要工程问题：V10 pairwise F1 只有 `89.40%`，而 V3 为
 `98.95%`；V10 wrong-merge 和 split-person frame rates 都约为 46%。V10 最终
 3D accuracy 仍很好，是因为多视角冗余和 post-triangulation 3D NMS 消除了大量
-重复 cluster，但这不能掩盖 M2 本身的问题。进入 ZED close-contact data 前，
-appearance embedding / global multi-way association 是优先修复项。
+重复 cluster，但这不能掩盖 original M2 本身的问题。
+
+2026-07-26 采用最小修改：不再在 torso 可见时丢弃 limbs，而是让所有可靠
+COCO-17 joints 共同参与相同的 confidence-weighted epipolar median。Frozen
+M1 的 band1 V10 重跑中，M2 pairwise F1 从 `89.40%` 提升到 `99.82%`，
+wrong-person merge-cluster rate 从 `46.27%` 降到 `0%`，MPJPE 从
+`18.57 mm` 降到 `18.16 mm`。完整 ablation、三条 sequences 的 V10/V3
+重跑和限制见
+[`artifacts/cmu_panoptic_10v3/comprehensive_report_2026-07-26/report.html`](../artifacts/cmu_panoptic_10v3/comprehensive_report_2026-07-26/report.html)。
 
 575 帧 evaluation-only RGB-D QA：544 帧接受 10 个 depth nodes，31 帧接受
 9 个；没有 cloud 被 suppression。每帧保存 20k voxelized points。Depth-node

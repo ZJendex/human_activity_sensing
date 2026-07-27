@@ -7,7 +7,6 @@ from typing import List, Mapping, Optional, Sequence, Tuple
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
-from .constants import TORSO_JOINTS
 from .geometry import symmetric_epipolar_distance_px
 from .model import Camera, Detection
 
@@ -26,10 +25,7 @@ def detection_pair_cost(
     score_a = first.keypoints[:, 2]
     score_b = second.keypoints[:, 2]
     valid = (score_a >= score_threshold) & (score_b >= score_threshold)
-    torso_valid = valid[np.asarray(TORSO_JOINTS)]
     selected = np.flatnonzero(valid)
-    if np.count_nonzero(torso_valid) >= 2:
-        selected = np.asarray(TORSO_JOINTS, dtype=int)[torso_valid]
     if selected.size < 2:
         return float("inf")
     distances = symmetric_epipolar_distance_px(
