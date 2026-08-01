@@ -1,6 +1,6 @@
 # CMU Panoptic：10 台与 3 台 RGB 相机的人体 3D Skeleton Reconstruction Study
 
-Last updated: 2026-07-25.
+Last updated: 2026-07-31.
 
 ## 1. Study decision
 
@@ -815,6 +815,136 @@ ViTPose 在原始 Kinect color image 上运行。进入 triangulation 前：
 不要把 distortion coefficients 丢弃，也不要把 raw pixels 与
 undistorted projection matrix 混用。
 
+### 6.5 Checkerboard gate for robust ZED triangulation
+
+本节只定义把本 study 转移到真实三台 ZED X 时的 calibration requirement。
+Panoptic sequence 已经提供官方 calibration，不能用下面的 checkerboard procedure
+重新拟合 Panoptic cameras 或改变 V10/V3 comparison。
+
+#### What the checkerboard must solve
+
+Checkerboard 不是“拍一张图得到 scale”的工具。它必须分别支持两个问题：
+
+| Problem | Unknowns | Required observations |
+|---|---|---|
+| Intrinsic validation / re-estimation | 每个 eye 的 `K` 和 distortion | 同一相机中覆盖完整 image、range 和 orientation 的多组 board poses |
+| Array extrinsics | 六个 rectified eyes 的 common-world pose | 同一时刻被多个、且具有 wide-baseline 的 camera locations 共同看到的 board poses |
+
+ZED primary route 默认保留 capture-session 的 raw intrinsics、每个 stereo pair 的
+`T_right_left`，rectify exactly once，再用 board 求三个 rig locations 的 array
+extrinsics。只有 factory/session intrinsics 在 held-out validation 中失败，或 lens、
+focus、resolution 改变时，才单独重估 intrinsics。Theia route 则给六个 rectified
+eyes 导入由各自 `P` matrix 生成的 custom intrinsics 和 zero distortion，再让
+Theia chessboard calibration 求 extrinsics；之后必须把 Theia 求出的每个
+left/right relative transform 与 ZED session `T_right_left` 比较，不能因为六个
+files 能被加载就假定 geometry 正确。
+
+#### Physical target requirement
+
+使用同一块 versioned、metrically surveyed target：
+
+- rigid、flat、matte、high-contrast，并保留 detector 所需的完整 white border；
+  不能把会弯曲的 loose paper/foam board 当作 metric plane；
+- 用实测而不是 printer setting 记录每个 square pitch、outer-corner dimensions、
+  diagonals、thickness、flatness 和 measurement uncertainty；
+- 使用 rectangular、可唯一确定方向的 layout，并同时记录 `squares wide/high`
+  与 `inner corners wide/high`，避免 OpenCV 与 Theia 的 count convention 互换；
+- square 数量越多可提供越多 constraints，但每格必须在最远 shared working
+  distance 仍能 sharp、subpixel-detectable；不存在脱离 lens、distance 和
+  detector 的 universal square size；
+- 由实际 rectified focal length 先估算 fronto-parallel footprint：
+
+  \[
+  w_{px} \simeq f_x W/Z, \qquad h_{px} \simeq f_y H/Z
+  \]
+
+  其中 `W/H` 为 board 的 measured dimensions、`Z` 为 working distance。
+  做一块 full-scale prototype，并在最近/最远距离、image center/corners 和最大
+  planned tilt 上跑 detector。Theia intrinsic workflow 的实用起点是 board
+  约占 image view 的 `1/4`，而不是先固定一个任意的 physical board size。
+
+如果 partial view、occlusion 或 180-degree identity ambiguity 在实际房间不可避免，
+native calibration 优先使用 rigid ChArUco board：它保留 subpixel chessboard
+corners，同时给 corner 唯一 ID。Theia chessboard path 必须使用 Theia 能识别的
+board；自定义 board 时应在短 pilot 中先验证 custom dimensions、orientation 和
+origin corner，而不能假定任意 ChArUco/AprilGrid 可直接被 Theia parser 接受。
+
+#### Zhang pose-diversity requirement
+
+Zhang plane-based method 的 theoretical minimum 不是 production acceptance
+criterion。对 unconstrained five-intrinsic solve，通常至少需要 `3` 个不同的
+plane orientations；只有加入 zero-skew 等 constraint 时 `2` 个 orientations
+才可能足够。Pure translation 或相互 parallel 的 board poses 是 degenerate，
+增加这种连续 frames 不会增加独立 calibration information。
+
+实际 capture 必须：
+
+1. 在 production resolution、focus、exposure、decode、split 和 rectification
+   path 上拍摄；board 缓慢移动且没有 motion blur、glare、clipping 或 shadow；
+2. 对每个 eye 以 systematic grid 覆盖 image center、四边和四角，并略越过
+   field-of-view edge；再换一个 range 重复；
+3. 同时改变 pitch、yaw 和 roll，不只平移；用于重估 intrinsics 时，以 Theia
+   的 `coverage > 0.9` 和 maximum board angle `30-60 degrees` 作为 capture gate；
+4. 从 video 中选择 viewpoint-diverse frames，不把大量相邻、几乎相同的 frames
+   当作更多 independent evidence；
+5. closed-form/PnP 只用于 initialization，最终 joint optimization 使用
+   subpixel corners、robust loss 和 per-corner uncertainty；
+6. 预留不同 poses 和 capture-volume regions 做 held-out validation，不能只报告
+   optimizer 用过的 training reprojection residual。
+
+#### Shared-view requirement for the three-ZED-X rig
+
+Theia 在 extrinsic trial 中建议 board 始终被 `3+` cameras 看到，少于三路检测的
+frames 不进入 normal system calibration；origin frame 默认也需要三路。对本项目，
+“3 eyes”仍不够严格，因为一台 ZED X 的 left/right eyes 只有约 12 cm internal
+baseline。采用以下更强的 gate：
+
+- 每个 accepted extrinsic group 至少包含 `3` eyes，且必须跨越至少 `2`
+  个 physical ZED locations；不能只由同一 stereo pair 和一个几乎同位置的
+  observation 支撑；
+- 尽可能让相邻 rig pair 的四个 eyes 同时看到 board，并分别覆盖 `rig1-rig2`、
+  `rig2-rig3` 和 `rig1-rig3`；如果单面 board 因环形布局不能被三处同时看到，
+  用这些 overlapping groups 建立 connected camera graph，而不是接受 disconnected
+  pairwise calibrations；
+- board 必须 traverses the actual human capture volume：near/far、low/high、center、
+  boundary 和主要 occlusion regions 都有 shared observations；
+- 另录 board 在 surveyed floor origin 的 static frames。Theia 应优先使用默认
+  three-camera origin triangulation；`Min 2 Cams for Origin Triangulation` 只作为
+  visibility rescue，不作为 robust primary calibration；
+- extrinsic trial 可按 Theia 建议录 `20-30 Hz`，slowly show the board to the
+  overlapping groups，并至少保存两个 independent trials。任何 camera/mount 移动、
+  resolution change 或 untracked focus/lens change 后必须重录；long session 前后各有
+  calibration trial，用于发现 drift 或 accidental movement。
+
+六个 eye videos 满足 Theia 的 minimum-six-file input count，但三组 close stereo
+pairs 仍只有三个 materially different viewing locations。它不能替代 Theia 对
+human trial 的另一条 requirement：每个 joint 至少在三个 cameras 中可见，而且
+views 应来自不同 angles。
+
+#### Acceptance criteria: fit is not enough
+
+一个小的 in-sample mean reprojection error 不能单独证明 triangulation robust。
+必须同时通过以下 gates：
+
+| Gate | Primary requirement |
+|---|---|
+| Target QA | Measured geometry、flatness、board version 和 uncertainty 已归档；detector 在 planned extremes 无 systematic corner loss |
+| Intrinsic QA | 每个 eye 的 coverage `>0.9`、angle diversity `30-60 degrees`；held-out residual map 在 center/edges/corners 无 systematic pattern |
+| Graph QA | 六个 eyes 全部连接；每个 rig pair 有 shared wide-baseline poses；每个 camera 有 accepted frames，不靠 close stereo pair 独占 support |
+| Theia QA | `RMSE Diagonal <1 mm` 为 target，`1-2 mm` 只算 acceptable，`>=2 mm` 为 no-go；同时检查 per-camera reprojection、angle、flatness 和 rejected-frame overlays |
+| Native pixel QA | Provisional held-out per-eye reprojection `RMS <=0.5 px` 且 `p95 <=1.0 px`，并检查 pairwise epipolar residual；这是 project gate，不是 Zhang/Theia universal constant |
+| Metric 3D QA | 用未参与 solve 的 board/wand positions 覆盖完整 volume；provisional calibration-only 3D error `RMS <=5 mm`、`p95 <=10 mm`，且没有局部 weak region |
+| Repeatability QA | 两个 independent calibration trials 的 camera transforms 和 held-out triangulated points 在上述 3D budget 内一致 |
+| Timing QA | Moving-board result 不得用 geometry optimizer 吸收 clock offset；另用 flashing target 验证 cross-rig exposure skew |
+
+最后把 estimated camera/corner covariance 与 measured M1 pixel-noise distribution
+传播到 actual rig geometry 的 Monte Carlo triangulation。只有 capture volume 内
+所有 planned subject positions 的 predicted/held-out 3D error 都低于 budget，且
+weak ray-angle regions 被明确标记或排除，checkerboard calibration 才通过。
+`RMS <=5 mm / p95 <=10 mm` 是为了给本 study 的 `20 mm` downstream engineering
+threshold 留出 margin 的 provisional allocation；得到真实 application tolerance
+后必须替换，而不能把它写成 checkerboard method 的普适 accuracy claim。
+
 ## 7. Pipeline specification
 
 本节描述 final-study target。当前 executable subset 以 section 1 的 pipeline
@@ -1331,3 +1461,12 @@ without reading source code。
 - [MMPose inference guide](https://github.com/open-mmlab/mmpose/blob/main/docs/en/user_guides/inference.md)
 - [Hugging Face ViTPose documentation](https://huggingface.co/docs/transformers/model_doc/vitpose)
 - [Three-ZED-X Human Mesh Roadmap](zedx_multiview_human_mesh_roadmap.md)
+- [Zhang: A Flexible New Technique for Camera Calibration](https://www.microsoft.com/en-us/research/publication/a-flexible-new-technique-for-camera-calibration/)
+- [OpenCV: Create Calibration Pattern](https://docs.opencv.org/master/da/d0d/tutorial_camera_calibration_pattern.html)
+- [OpenCV: ChArUco Board Detection](https://docs.opencv.org/master/df/d4a/tutorial_charuco_detection.html)
+- [AprilCal: Assisted and Repeatable Camera Calibration](https://april.eecs.umich.edu/papers/details.php?name=richardson2013iros)
+- [mrcal: Projection Uncertainty](https://mrcal.secretsauce.net/uncertainty.html)
+- [Theia3D: Recording Intrinsic Lens Calibrations](https://docs.theiamarkerless.com/theia3d-documentation/data-collection/recording-intrinsic-lens-calibrations)
+- [Theia3D: Recording Extrinsic Chessboard Calibrations](https://docs.theiamarkerless.com/theia3d-documentation/data-collection/recording-extrinsic-chessboard-calibrations)
+- [Theia3D: Chessboard Calibration and Metrics](https://docs.theiamarkerless.com/theia3d-documentation/theia3d-dropdown-menus/calibration-menu/chessboard-calibration)
+- [Theia3D: Camera System Requirements](https://docs.theiamarkerless.com/theia3d-documentation/camera-system-requirements)
